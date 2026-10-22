@@ -2,12 +2,11 @@
 import base64
 import io
 import os
-import json
 import re
 from pathlib import Path
 
 from dotenv import load_dotenv
-from api_connections import OpenAI
+from provider_adapters import adapter_for
 from provider_usage import metrics
 from study_tools import command_for, instruction
 from desktop_actions import ACTION_INSTRUCTION
@@ -68,23 +67,19 @@ class Agent:
         key = config['api_key'] if config else os.getenv("GROQ_API_KEY")
         if not key:
             raise ValueError("Add GROQ_API_KEY to the .env file in this project, then restart.")
-        self.client = OpenAI(api_key=key, base_url=config['base_url'] if config else "https://api.groq.com/openai/v1",
-                             timeout=60, max_retries=0)
+        self.config = config or {'api_key':key, 'base_url':'https://api.groq.com/openai/v1', 'provider_type':'openai_compatible'}
+        self.adapter = adapter_for(self.config)
+        self.client = self.adapter.client
         self.text_model = config['model'] if config else os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
         self.vision_model = config['vision_model'] if config else os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.8-27b")
         self.tools_enabled = config.get('tools',False) if config else True
         self.token_parameter = config.get('token_parameter','max_completion_tokens') if config else 'max_completion_tokens'
         self.history = []
-        self.config = config or {}
         self.usage_report = None
         self.capture_usage = True
 
     def reply(self, question, image_url=None, memories="", github=False):
         self.pending_action = None
-        content = question
-        if image_url:
-            content = [{"type": "text", "text": question},
-                       {"type": "image_url", "image_url": {"url": image_url}}]
         system = SYSTEM_PROMPT
         system += ACTION_INSTRUCTION
         system += '\nRegistered desktop context (names only): '+str(getattr(self,'config',{}).get('desktop_context','No registered apps or workspaces.'))
@@ -108,40 +103,31 @@ class Agent:
                        ' each included a successfully captured screen image. Sleepy attached it automatically. '
                        'Their pixels are no longer retained; do not infer that no image was supplied. '
                        'You see snapshots, not live video, and cannot observe animation between snapshots.')
-        messages = [{"role": "system", "content": system}]
-        messages.extend({'role': item['role'], 'content': item['content']} for item in history)
-        messages.append({"role": "user", "content": content})
-        options = {}
+        tools = None
         if github and not command and getattr(self, 'tools_enabled', True):
             from github_plugin import REPO_TOOL
-            options['tools'] = [REPO_TOOL]
-            options['tool_choice'] = 'auto'
+            tools = [REPO_TOOL]
         config = getattr(self, 'config', {})
         model = self.vision_model if image_url else self.text_model
         meta = config.get('capabilities', {}).get(model, {})
         limit = min(config.get('output_limit', 4096), meta.get('max_output') or 4096)
-        options[getattr(self, 'token_parameter', 'max_completion_tokens')] = limit
         if meta.get('tools') is False:
-            options.pop('tools', None)
-            options.pop('tool_choice', None)
-        if config.get('reasoning') and meta.get('reasoning'):
-            options['reasoning_effort'] = config['reasoning']
+            tools = None
+        reasoning = config.get('reasoning','') if meta.get('reasoning') else ''
         try:
-            if getattr(self, 'capture_usage', False):
-                raw = self.client.chat.completions.with_raw_response.create(model=model, messages=messages, **options)
-                result = raw.parse()
-                self.usage_report = metrics(result, raw.headers)
-            else:
-                result = self.client.chat.completions.create(model=model, messages=messages, **options)
+            adapter = getattr(self, 'adapter', None) or adapter_for(config or {'provider_type':'openai_compatible'}, self.client)
+            response = adapter.complete(system=system, history=history, question=question, image_url=image_url,
+                model=model, max_tokens=limit, token_parameter=getattr(self,'token_parameter','max_completion_tokens'),
+                tools=tools, reasoning=reasoning, capture_usage=getattr(self,'capture_usage',False))
+            self.usage_report = metrics(response['result'], response['headers'])
         except Exception as error:
             self.usage_report = metrics(headers=getattr(getattr(error,'response',None),'headers',None))
             raise
-        message = result.choices[0].message
-        answer = message.content
-        for call in getattr(message, 'tool_calls', None) or []:
-            if call.function.name == 'propose_github_repository':
+        answer = response['text']
+        for call in response['tool_calls']:
+            if call['name'] == 'propose_github_repository':
                 from github_plugin import validate_repo
-                self.pending_action = validate_repo(json.loads(call.function.arguments))
+                self.pending_action = validate_repo(call['arguments'])
                 answer = 'I’ve prepared the repository details below. Review them before creating it.'
                 break
         if not answer:
@@ -154,6 +140,9 @@ class Agent:
                              {"role": "assistant", "content": answer}])
         self.history = self.history[-16:]
         return answer
+
+    def close(self):
+        (getattr(self, 'adapter', None) or self.client).close()
 
 
 def friendly_error(error):
@@ -168,12 +157,20 @@ def friendly_error(error):
     # Provider messages are useful, but can echo a submitted credential.
     detail=re.sub(r'(?:gsk_|sk-|ghp_|github_pat_)[A-Za-z0-9_-]+','[redacted]',detail)
     detail=re.sub(r'(?i)(bearer\s+|api[_ -]?key[=: ]+)[^\s,;]+',r'\1[redacted]',detail)
+    request_id = getattr(error, 'request_id', None)
+    suffix = f' Request ID: {request_id}.' if isinstance(request_id,str) and re.fullmatch(r'req_[A-Za-z0-9_-]+',request_id) else ''
+    if status == 402:
+        return 'The provider account has insufficient credits (HTTP 402). Check billing or choose another saved connection.'+suffix
+    if status == 403:
+        return 'The provider refused access (HTTP 403). Check the key permissions, workspace, and selected model.'+suffix
     if status == 429:
-        return 'Provider limit reached (HTTP 429). '+(detail+' ' if detail else '')+'Wait for the reset, start a shorter chat, or choose another saved connection and send again. Sleepy has not switched providers or resent your screen.'
+        return 'Provider limit reached (HTTP 429). '+(detail+' ' if detail else '')+'Wait for the reset, start a shorter chat, or choose another saved connection and send again. Sleepy has not switched providers or resent your screen.'+suffix
+    if status == 529:
+        return 'The provider is temporarily overloaded (HTTP 529). Wait a moment and try again.'+suffix
     if status in (400, 413, 422) and any(word in detail.lower() for word in ('image','pixel','size','large','resolution')):
         return f'Image request rejected (HTTP {status}): {detail or "Image exceeds this provider’s limit."} Use Select a screen area around the question and send again.'
     if status:
-        return f'Provider error (HTTP {status}): {detail or type(error).__name__}. Check the selected model and account access.'
+        return f'Provider error (HTTP {status}): {detail or type(error).__name__}. Check the selected model and account access.'+suffix
     if isinstance(error, ValueError):
         return str(error)
     name=type(error).__name__

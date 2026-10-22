@@ -18,6 +18,10 @@ PRESETS = {
     'Ollama (local)': 'http://localhost:11434/v1',
     'Custom': '',
 }
+PROVIDER_PRESETS = {
+    name: {'base_url': url, 'provider_type': 'anthropic' if name == 'Anthropic' else 'openai_compatible'}
+    for name, url in {**PRESETS, 'Anthropic': 'https://api.anthropic.com'}.items()
+}
 
 def validate_url(value):
     value = str(value).strip().rstrip('/')
@@ -43,7 +47,8 @@ class Connections:
             store.set('api_active', profiles[0]['id'] if profiles else '')
 
     def profiles(self):
-        return self.store.get('api_profiles', [])
+        profiles = self.store.get('api_profiles', [])
+        return [{**p, 'provider_type': p.get('provider_type', 'openai_compatible')} for p in profiles]
 
     def find(self, profile_id):
         return next((p for p in self.profiles() if p['id'] == profile_id), None)
@@ -59,22 +64,29 @@ class Connections:
 
     def public(self):
         # No key retrieval is needed to list profiles; never emit secrets to the web UI.
-        return {'profiles':self.profiles(), 'active':self.store.get('api_active',''), 'presets':PRESETS, 'usage':self.store.get('api_usage',{}),'credits':self.store.get('api_credits',{})}
+        return {'profiles':self.profiles(), 'active':self.store.get('api_active',''), 'presets':PRESETS,
+                'provider_presets':PROVIDER_PRESETS, 'usage':self.store.get('api_usage',{}),'credits':self.store.get('api_credits',{})}
 
     def save(self, data):
         old = self.find(data.get('id'))
+        provider_type = str(data.get('provider_type') or (old or {}).get('provider_type') or 'openai_compatible')
+        if provider_type not in ('openai_compatible', 'anthropic'):
+            raise ValueError('Choose a supported provider type.')
         base_url = validate_url(data.get('base_url',''))
+        if provider_type == 'anthropic' and base_url != 'https://api.anthropic.com':
+            raise ValueError('Native Anthropic connections use https://api.anthropic.com.')
         secret = str(data.get('key','')).strip()
-        if old and base_url != old['base_url'] and not secret:
+        if old and (base_url != old['base_url'] or provider_type != old.get('provider_type','openai_compatible')) and not secret:
             raise ValueError('Changing an API address requires a new key. Add a separate connection for a local server.')
         profile = {'id':old['id'] if old else uuid.uuid4().hex,
                    'name':str(data.get('name','')).strip()[:60] or 'My API',
+                   'provider_type':provider_type,
                    'base_url':base_url, 'model':str(data.get('model','')).strip()[:200],
                    'vision_model':str(data.get('vision_model','')).strip()[:200],
                    'tools':bool(data.get('tools',False)),
-                   'token_parameter':data.get('token_parameter','max_completion_tokens'),
-                   'models':old.get('models',[]) if old and base_url == old['base_url'] else []}
-        profile['capabilities'] = old.get('capabilities',{}) if old and base_url == old['base_url'] else {}
+                   'token_parameter':'max_tokens' if provider_type == 'anthropic' else data.get('token_parameter','max_completion_tokens'),
+                   'models':old.get('models',[]) if old and base_url == old['base_url'] and provider_type == old.get('provider_type','openai_compatible') else []}
+        profile['capabilities'] = old.get('capabilities',{}) if old and base_url == old['base_url'] and provider_type == old.get('provider_type','openai_compatible') else {}
         profile['output_limit'] = max(64,min(16384,int(data.get('output_limit',4096))))
         profile['reasoning'] = data.get('reasoning','') if data.get('reasoning','') in ('','low','medium','high') else ''
         if profile['token_parameter'] not in ('max_completion_tokens','max_tokens'):
@@ -138,31 +150,15 @@ class Connections:
             self.store.set('api_profiles',[profile if p['id']==profile_id else p for p in self.profiles()])
 
 def fetch_models(config):
-    with OpenAI(api_key=config['api_key'],base_url=config['base_url'],timeout=25,max_retries=0) as client:
-        return sorted({m.id for m in client.models.list()})
+    return fetch_catalog(config)['models']
 
 def fetch_catalog(config):
-    with OpenAI(api_key=config['api_key'],base_url=config['base_url'],timeout=25,max_retries=0) as client:
-        models=list(client.models.list())
-    capabilities={}
-    for model in models:
-        data=model.model_dump()
-        architecture=data.get('architecture') or {}
-        inputs=architecture.get('input_modalities')
-        outputs=architecture.get('output_modalities')
-        params=data.get('supported_parameters')
-        provider=data.get('top_provider') or {}
-        def positive(value):
-            return value if isinstance(value,int) and not isinstance(value,bool) and value>0 else None
-        capabilities[model.id]={
-            'text': 'text' in outputs if isinstance(outputs,list) else None,
-            'vision': 'image' in inputs if isinstance(inputs,list) else None,
-            'tools': 'tools' in params if isinstance(params,list) else None,
-            'structured': any(p in params for p in ('structured_outputs','response_format')) if isinstance(params,list) else None,
-            'reasoning': 'reasoning_effort' in params if isinstance(params,list) else None,
-            'context': positive(data.get('context_length') or data.get('context_window')),
-            'max_output': positive(provider.get('max_completion_tokens') or data.get('max_completion_tokens'))}
-    return {'models':sorted(capabilities),'capabilities':capabilities}
+    from provider_adapters import adapter_for
+    adapter = adapter_for(config, timeout=25)
+    try:
+        return adapter.list_catalog()
+    finally:
+        adapter.close()
 
 def test_connection(config, screen=False):
     from agent_core import Agent, encode_image
@@ -174,4 +170,4 @@ def test_connection(config, screen=False):
         return {'message':('Screen model' if screen else 'Chat model')+' responded successfully: '+answer[:160],
                 'usage':agent.usage_report,'model':config['vision_model'] if screen else config['model']}
     finally:
-        agent.client.close()
+        agent.close()

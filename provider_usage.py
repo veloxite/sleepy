@@ -28,10 +28,25 @@ def metrics(result=None, headers=None):
         value = getattr(usage,key,None)
         if isinstance(value,int) and value>=0:
             counts[key]=value
+    if usage is not None and not counts:
+        direct = {key:getattr(usage,key,None) for key in
+                  ('input_tokens','output_tokens','cache_creation_input_tokens','cache_read_input_tokens')}
+        for key,value in direct.items():
+            if isinstance(value,int) and value>=0:counts[key]=value
+        if 'input_tokens' in counts:
+            counts['prompt_tokens']=sum(counts.get(k,0) for k in
+                ('input_tokens','cache_creation_input_tokens','cache_read_input_tokens'))
+        if 'output_tokens' in counts:counts['completion_tokens']=counts['output_tokens']
+        if 'prompt_tokens' in counts or 'completion_tokens' in counts:
+            counts['total_tokens']=counts.get('prompt_tokens',0)+counts.get('completion_tokens',0)
     limits = {}
     for key,value in (headers or {}).items():
         key=key.lower()
-        if key in ('retry-after','x-ratelimit-limit-requests','x-ratelimit-limit-tokens','x-ratelimit-remaining-requests','x-ratelimit-remaining-tokens','x-ratelimit-reset-requests','x-ratelimit-reset-tokens'):
+        if key in ('retry-after','x-ratelimit-limit-requests','x-ratelimit-limit-tokens','x-ratelimit-remaining-requests','x-ratelimit-remaining-tokens','x-ratelimit-reset-requests','x-ratelimit-reset-tokens',
+                   'anthropic-ratelimit-requests-limit','anthropic-ratelimit-requests-remaining','anthropic-ratelimit-requests-reset',
+                   'anthropic-ratelimit-tokens-limit','anthropic-ratelimit-tokens-remaining','anthropic-ratelimit-tokens-reset',
+                   'anthropic-ratelimit-input-tokens-limit','anthropic-ratelimit-input-tokens-remaining','anthropic-ratelimit-input-tokens-reset',
+                   'anthropic-ratelimit-output-tokens-limit','anthropic-ratelimit-output-tokens-remaining','anthropic-ratelimit-output-tokens-reset'):
             limits[key]=str(value)[:100]
     return {'tokens':counts,'limits':limits,'at':datetime.now(timezone.utc).isoformat(timespec='seconds')}
 
