@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.log
+*.lnk
+data/
+release/
+build/
+dist/
+.DS_Store
+
+exports/
