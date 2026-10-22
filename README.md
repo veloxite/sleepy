@@ -4,8 +4,8 @@
 
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
-Windows is tested. macOS support is implemented with Qt and Pillow but is not yet
-verified on a Mac. This is a source release, not a packaged installer.
+This is a source release, not a packaged installer.
+**Your desktop. Your data. Your control.** Sleepy is built with privacy in mind, giving you control over your AI providers, API keys, and personal information. Its open-source code lets anyone inspect how the assistant works and handles data.
 
 ## Start here
 
@@ -183,7 +183,6 @@ could be reactivated by a background state update; it now unloads after roughly
 
 ## Development and publishing
 
-See [PUBLISHING.md](PUBLISHING.md) for the safe source-release and GitHub steps.
 This project's own code is MIT licensed; dependency notices are in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
