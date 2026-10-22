@@ -253,14 +253,16 @@ function renderConnections(){
 function fillConnections(id){
  const c=state.connections;const selected=id===undefined?(c.active||''):id;
  options($('api-profile'),[['','New connection'],...c.profiles.map(p=>[p.id,p.name])],selected);
- options($('api-preset'),Object.keys(c.presets).map(n=>[n,n]),'Groq');
+ options($('api-preset'),Object.keys(c.provider_presets||c.presets).map(n=>[n,n]),'Groq');
  loadProfile(selected);
 }
+function providerPreset(name){const item=(state.connections.provider_presets||{})[name];return typeof item==='string'?{base_url:item,provider_type:'openai_compatible'}:(item||{base_url:state.connections.presets[name]||'',provider_type:'openai_compatible'});}
+function applyProviderUI(name){const meta=providerPreset(name);const native=meta.provider_type==='anthropic';$('api-url').readOnly=native;$('api-tokens').disabled=native;$('api-reasoning').disabled=native;$('api-provider-note').textContent=native?'Native Anthropic Messages API · use a key from Anthropic Console. System instructions, images, tools, usage, and provider errors are handled directly.':'Uses this provider’s OpenAI-compatible API.';}
 function loadProfile(id){
  const p=state.connections.profiles.find(p=>p.id===id);
  $('api-profile').value=id||'';$('api-name').value=p?.name||'';$('api-url').value=p?.base_url||state.connections.presets.Groq;
  $('api-key').value='';$('api-model').value=p?.model||'';$('api-vision').value=p?.vision_model||'';$('api-tools').checked=p?.tools||false;$('api-tokens').value=p?.token_parameter||'max_completion_tokens';
- $('api-preset').value=Object.entries(state.connections.presets).find(([n,url])=>url===$('api-url').value)?.[0]||'Custom';
+ $('api-preset').value=p?.provider_type==='anthropic'?'Anthropic':Object.entries(state.connections.presets).find(([n,url])=>url===$('api-url').value)?.[0]||'Custom';applyProviderUI($('api-preset').value);
  $('api-output').value=p?.output_limit||4096;$('api-reasoning').value=p?.reasoning||'';
  if(window.showProviderDetails)window.showProviderDetails(p);
  for(const name of ['api-load','api-delete','api-use','api-test','api-test-screen'])$(name).disabled=!p;
@@ -268,10 +270,10 @@ function loadProfile(id){
 }
 $('api-profile').onchange=()=>loadProfile($('api-profile').value);
 $('api-new').onclick=()=>loadProfile('');
-$('api-preset').onchange=()=>{const name=$('api-preset').value;$('api-url').value=state.connections.presets[name];$('api-name').value=name==='Custom'?'My API':name;$('api-key').value='';$('api-tokens').value=name==='Groq'||name==='OpenAI'?'max_completion_tokens':'max_tokens';};
+$('api-preset').onchange=()=>{const name=$('api-preset').value,meta=providerPreset(name);$('api-url').value=meta.base_url;$('api-name').value=name==='Custom'?'My API':name;$('api-key').value='';$('api-tokens').value=meta.provider_type==='anthropic'?'max_tokens':(name==='Groq'||name==='OpenAI'?'max_completion_tokens':'max_tokens');applyProviderUI(name);};
 $('api-save').onclick=()=>{
  const key=$('api-key').value;$('api-key').value='';
- send('api_save',{id:$('api-profile').value,name:$('api-name').value,base_url:$('api-url').value,key,model:$('api-model').value,vision_model:$('api-vision').value,tools:$('api-tools').checked,token_parameter:$('api-tokens').value,output_limit:Number($('api-output').value),reasoning:$('api-reasoning').value});
+ send('api_save',{id:$('api-profile').value,name:$('api-name').value,base_url:$('api-url').value,key,provider_type:providerPreset($('api-preset').value).provider_type,model:$('api-model').value,vision_model:$('api-vision').value,tools:$('api-tools').checked,token_parameter:$('api-tokens').value,output_limit:Number($('api-output').value),reasoning:$('api-reasoning').value});
 };
 $('api-load').onclick=()=>send('api_models',{id:$('api-profile').value});
 $('api-use').onclick=()=>{send('api_select',{id:$('api-profile').value});toast('Connection selected.');};

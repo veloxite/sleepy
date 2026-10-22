@@ -78,4 +78,18 @@ class ConnectionTests(unittest.TestCase):
             self.assertEqual(c.runtime()['api_key'],'legacy-private-key')
             self.assertNotIn('legacy-private-key',json.dumps(c.public()))
 
+    def test_anthropic_profile_is_native_and_keeps_key_in_vault(self):
+        profile=self.add(name='Anthropic',base_url='https://api.anthropic.com',provider_type='anthropic',
+                         key='sk-ant-private',token_parameter='max_completion_tokens')
+        runtime=self.connections.runtime(profile['id'])
+        self.assertEqual(runtime['provider_type'],'anthropic')
+        self.assertEqual(runtime['token_parameter'],'max_tokens')
+        self.assertNotIn('sk-ant-private',json.dumps(self.connections.public()))
+        self.assertEqual(self.connections.public()['provider_presets']['Anthropic']['provider_type'],'anthropic')
+
+    def test_old_profiles_remain_openai_compatible(self):
+        profile=self.add()
+        raw=self.store.get('api_profiles');raw[0].pop('provider_type',None);self.store.set('api_profiles',raw)
+        self.assertEqual(self.connections.runtime(profile['id'])['provider_type'],'openai_compatible')
+
 if __name__=='__main__':unittest.main()

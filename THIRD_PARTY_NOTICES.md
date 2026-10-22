@@ -25,6 +25,7 @@ See the installed distributions and upstream projects for complete license terms
   have their own notices. A future binary installer must include the appropriate
   Qt and third-party notices and satisfy the chosen distribution license.
 - [OpenAI Python SDK](https://github.com/openai/openai-python): Apache-2.0.
+- [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python): MIT.
 - [python-dotenv](https://github.com/theskumar/python-dotenv): BSD-3-Clause.
 - [Pillow](https://github.com/python-pillow/Pillow): MIT-CMU and bundled notices.
 - [keyring](https://github.com/jaraco/keyring): MIT and dependency notices.

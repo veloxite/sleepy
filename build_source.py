@@ -10,7 +10,7 @@ FILES=['README.md','PUBLISHING.md','LICENSE','THIRD_PARTY_NOTICES.md','.gitignor
        'requirements.txt','desktop_agent.py','sleepy_app.py','focus_overlay.py','agent_core.py',
        'api_connections.py','github_plugin.py','local_store.py',
        'Create Sleepy Shortcut.ps1','fetch_frontend.py','build_source.py',
-       'windows_integration.py','study_tools.py','provider_usage.py',
+       'windows_integration.py','study_tools.py','provider_usage.py','provider_adapters.py',
        'assistant_features.py','desktop_actions.py','voice_input.py','music_player.py','web_media.py']
 SECRET=re.compile(rb'(?:gsk_[A-Za-z0-9]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk-proj-[A-Za-z0-9_-]{20,})')
 

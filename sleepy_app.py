@@ -745,7 +745,7 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
             except Exception as error:
                 return {'error':friendly_error(error),'usage':agent.usage_report}
             finally:
-                agent.client.close()
+                agent.close()
         self.job('chat', work)
 
     def prepare_repo(self, data):
@@ -790,7 +790,7 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
                 self.connections.cache_models(profile_id,result['value'])
                 self.emit('api_status',message=f"Loaded {len(result['value']['models'])} models. Capabilities are shown where the provider reports them; unknown does not mean unsupported.")
             else:
-                self.emit('api_status',message='Could not load models. Check the key and endpoint, or enter model IDs manually.')
+                self.emit('api_status',message=result['error'])
             self.publish()
         elif name == 'chat':
             self.busy = False

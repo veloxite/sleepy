@@ -4,8 +4,8 @@
 
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
-This is a source release, not a packaged installer.
-**Your desktop. Your data. Your control.** Sleepy is built with privacy in mind, giving you control over your AI providers, API keys, and personal information. Its open-source code lets anyone inspect how the assistant works and handles data.
+Windows is tested. macOS support is implemented with Qt and Pillow but is not yet
+verified on a Mac. This is a source release, not a packaged installer.
 
 ## Start here
 
@@ -56,9 +56,12 @@ keeps the existing key. Changing an endpoint requires a new key to avoid sending
 an old provider's credential to another server.
 
 Presets include Groq, OpenAI, OpenRouter, Gemini's compatible API, Ollama on
-localhost, and a custom OpenAI-compatible Chat Completions endpoint. Groq is
-live-tested; other providers use the compatible request format but have not
-been tested with live credentials. This is not a native Anthropic integration.
+localhost, a custom OpenAI-compatible Chat Completions endpoint, and native
+Anthropic. Anthropic Console keys use Anthropic's Messages API directly,
+including system instructions, screen images, tool proposals, usage counters,
+rate-limit details, and provider-specific errors. Groq is live-tested; other
+providers have automated request-format tests but have not been tested with
+live credentials in this source checkout.
 Provider access, quotas, model support, and prices vary. There is no automatic
 paid fallback or supplied shared API key. Local Ollama needs a separately running
 server and an installed model; local image use requires a vision model.
@@ -67,6 +70,11 @@ The provider model list can include audio or other non-chat models. Pick models
 that support the features you use. For compatible servers, the Compatibility
 section controls tool use and the token-limit parameter. A text-only model will
 not work with Screen on. Model IDs can also be typed manually.
+
+For Anthropic, choose **Anthropic**, enter a key from Anthropic Console, save,
+then load the current Claude model list. Sleepy uses the fixed official API
+address and never sends that key to another provider. Anthropic does not accept
+OpenAI's `reasoning_effort` parameter, so that setting remains provider-managed.
 
 For Groq, `openai/gpt-oss-120b` is the existing chat default and
 `qwen/qwen3.8-27b` is the existing vision default. Use **Load models** for current
@@ -183,6 +191,7 @@ could be reactivated by a background state update; it now unloads after roughly
 
 ## Development and publishing
 
+See [PUBLISHING.md](PUBLISHING.md) for the safe source-release and GitHub steps.
 This project's own code is MIT licensed; dependency notices are in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
