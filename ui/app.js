@@ -173,7 +173,7 @@ $('disconnect-github').onclick=()=>send('github_disconnect');
 $('token-help').onclick=()=>send('open_link',{url:'https://github.com/settings/personal-access-tokens/new'});
 $('prepare-repo').onclick=()=>{
  if(!$('repo-name').value.trim()){toast('Give your repository a name.');return;}
- send('repo_propose',{name:$('repo-name').value,description:$('repo-description').value,private:$('repo-private').checked});$('settings-dialog').close();
+ send('repo_propose',{name:$('repo-name').value,description:$('repo-description').value,private:$('repo-private').checked});document.querySelectorAll('dialog[open]').forEach(d=>d.close());
 };
 function renderProposal(p){
  proposal=p;$('proposal').replaceChildren();if(!p)return;
@@ -254,7 +254,7 @@ function renderConnections(){
  const c=state.connections, p=c.profiles.find(p=>p.id===c.active);
  const model=state.prefs.screen_enabled?p?.vision_model:p?.model;
  $('model-menu').textContent=(model||'Choose AI')+' ⌄';$('model-menu').title=p?`${p.name} · ${state.prefs.screen_enabled?'Screen model':'Chat model'}`:'Set up your API';$('model-menu').disabled=state.busy;
- if($('settings-dialog').open)modelOptions('api-models',c.profiles.find(p=>p.id===$('api-profile').value));
+ if($('settings-dialog').open||$('feature-dialog')?.open){modelOptions('api-models',c.profiles.find(p=>p.id===$('api-profile').value));if(window.refreshModelPickers)refreshModelPickers();}
 }
 function fillConnections(id){
  const c=state.connections;const selected=id===undefined?(c.active||''):id;

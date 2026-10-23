@@ -377,8 +377,15 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
         if action == 'ready':
             self.page_ready=True
             self.publish()
+            if not self.store.get('welcome_guide_seen',False):
+                self.store.set('welcome_guide_seen',True)
+                self.emit('welcome_guide')
             if self.pending_settings:
                 tab=self.pending_settings;self.pending_settings=None;self.emit('open_settings',tab=tab)
+        elif action == 'api_catalog_preview':
+            config=self.connections.preview(data)
+            request_id=str(data.get('request_id',''))[:80]
+            self.job('catalog:'+request_id,lambda:fetch_catalog(config))
         elif action == 'api_test':
             if self.busy:
                 raise ValueError('Wait for the chat request to finish.')
@@ -793,6 +800,8 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
                 record(self.store,name.split(':',1)[1],value['model'],value['usage'])
             self.emit('api_status',message=result['value']['message'] if result['ok'] else result['error'])
             self.publish()
+        elif name.startswith('catalog:'):
+            self.emit('api_catalog',request_id=name.split(':',1)[1],catalog=result.get('value') if result['ok'] else None,error=result.get('error',''))
         elif name.startswith('models:'):
             profile_id=name.split(':',1)[1]
             if result['ok']:
@@ -851,7 +860,11 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
 
     def show_chat(self):
         was_hidden=not self.isVisible() or self.isMinimized()
-        if was_hidden and not self.capturing:self.layout_pair.arrange(self)
+        if was_hidden and not self.capturing:
+            # Never apply narrow-panel geometry to a maximized native window.
+            # Qt and the compositor can otherwise disagree about its viewport.
+            self.setWindowState(Qt.WindowNoState)
+            self.layout_pair.arrange(self)
         self.idle_timer.stop()
         self.discard_timer.stop()
         self.page.setLifecycleState(QWebEnginePage.Active)
@@ -879,7 +892,12 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
             QTimer.singleShot(0,lambda:self.emit('open_settings',tab=tab))
 
     def fullscreen(self):
-        self.showNormal() if self.isFullScreen() else self.showFullScreen()
+        if self.isFullScreen() or self.isMaximized():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+        self.page.setLifecycleState(QWebEnginePage.Active)
+        self.update()
 
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange and hasattr(self, 'face') and not self.capturing:

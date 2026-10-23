@@ -24,7 +24,14 @@ def run():
   w.show();pump(2)
   try:
    assert js(w,'state.connections.profiles.length')==0
-   js(w,"($('model-menu').click(),true)");pump();assert js(w,"$('settings-dialog').open")
+   js(w,"(document.querySelector('.welcome-guide')?.close(),$('model-menu').click(),true)");pump();assert js(w,"$('feature-dialog').open")
+   assert not js(w,"$('settings-dialog').open")
+   assert js(w,"document.querySelector('[data-tab=models]')===null")
+   with patch('sleepy_app.fetch_catalog',return_value={'models':['chat-choice','image-choice'],'capabilities':{'chat-choice':{'vision':False},'image-choice':{'vision':True}}}):
+    js(w,"($('api-url').value='http://localhost:11434/v1',$('api-load').click(),true)");pump(.5)
+   assert len(w.connections.profiles())==0
+   assert js(w,"$('api-model-picker').options.length")==3
+   assert js(w,"$('api-vision-picker').options.length")==2
    js(w,"($('api-name').value='Local test', $('api-url').value='http://localhost:11434/v1', $('api-model').value='chat-one', $('api-vision').value='vision-one', $('api-save').click(),true)");pump(.5)
    assert len(w.connections.profiles())==1
    pid=w.connections.active()['id'];assert js(w,"$('api-profile').value")==pid

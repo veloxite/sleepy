@@ -125,6 +125,23 @@ class Connections:
         if self.store.get('api_active')==profile_id:
             self.store.set('api_active',remaining[0]['id'] if remaining else '')
 
+    def preview(self, data):
+        """Build an ephemeral catalog request without saving credentials."""
+        url = validate_url(data.get('base_url', ''))
+        kind = data.get('provider_type', 'openai_compatible')
+        if kind not in ('openai_compatible', 'anthropic'):
+            raise ValueError('Choose a supported provider.')
+        if kind == 'anthropic' and url != 'https://api.anthropic.com':
+            raise ValueError('Native Anthropic uses https://api.anthropic.com.')
+        old = self.find(data.get('id'))
+        secret = str(data.get('key', '')).strip()
+        if not secret and old and old['base_url'] == url and old.get('provider_type','openai_compatible') == kind:
+            secret = self.key(old)
+        local = urlsplit(url).hostname in ('localhost','127.0.0.1','::1')
+        if not secret and not local:
+            raise ValueError('Enter your API key, then load available models.')
+        return {'base_url':url, 'provider_type':kind, 'api_key':secret or 'local-no-key'}
+
     def runtime(self, profile_id=None, screen=False, require_model=True):
         profile = self.find(profile_id) if profile_id else self.active()
         if not profile:

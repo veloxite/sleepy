@@ -33,7 +33,7 @@ function renderMusic(music){
 }
 window.renderFeatures=function(){
  if(!state?.features)return;const f=state.features;
- if($('settings-dialog').open){
+ if($('settings-dialog').open||$('feature-dialog')?.open){
  $('workspace-path').textContent=f.workspace_root||'No folder selected';$('feature-apps').replaceChildren();
  for(const app of f.apps){const row=document.createElement('div');row.className='feature-row';const label=document.createElement('span');label.textContent=app.name;row.append(label,actionButton('Remove',()=>send('app_remove',{name:app.name})));$('feature-apps').append(row);}
  options($('installed-app'),f.installed_apps.map(a=>[a.name,a.name]),$('installed-app').value||f.installed_apps[0]?.name);
@@ -47,9 +47,17 @@ window.renderFeatures=function(){
  if(preview){const card=document.createElement('div');card.className='repo-card';const title=document.createElement('strong');title.textContent='Review action';const details=document.createElement('pre');details.textContent=preview.lines.join('\n');card.append(title,details,actionButton('Continue',()=>send('desktop_confirm',{id:preview.id})),actionButton('Cancel',()=>send('desktop_cancel')));box.append(card);}
 };
 window.handleFeatureEvent=function(event){
+ if(event.type==='welcome_guide'){showWelcomeGuide();return true;}
+ if(event.type==='api_catalog'){
+  if(event.request_id!==catalogRequest)return true;
+  $('api-load').disabled=false;
+  if(event.error){$('api-status').textContent=event.error;return true;}
+  modelOptions('api-models',event.catalog);refreshModelPickers();
+  $('api-status').textContent='Models loaded. Choose chat and screen models, then save everything together.';return true;
+ }
  if(event.type==='mic'){mic.classList.toggle('listening',event.recording);mic.title=event.recording?'Listening · release to send':'Hold to talk';return true;}
  if(event.type==='transcript'){$('prompt').value=event.autosent?'':event.text;sizePrompt();if(!event.autosent)saveDraft();return true;}
- if(event.type==='music'){if(state?.features)state.features.music=event.music;if($('settings-dialog').open)renderMusic(event.music);return true;}
+ if(event.type==='music'){if(state?.features)state.features.music=event.music;if($('feature-dialog')?.open)renderMusic(event.music);return true;}
  return false;
 };
 window.renderMedia=function(code,kind,raw){
@@ -66,7 +74,65 @@ window.renderMedia=function(code,kind,raw){
 if(state){fillFeatureSettings();renderFeatures();}
 
 const rail=document.createElement('nav');rail.id='app-rail';rail.setAttribute('aria-label','Sleepy navigation');
-for(const [tab,label,icon] of [['chat','Chats','panel'],['workspaces','Workspaces','models'],['music','Music','volume'],['plugins','Plugins','plug'],['models','Models & APIs','spark'],['appearance','Settings','settings']]){
+icons.music='<path d="M9 18V5l12-2v13M9 9l12-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="18" cy="16" rx="3" ry="3"/>';
+for(const [tab,label,icon] of [['chat','Chats','panel'],['models','Models & APIs','spark'],['workspaces','Workspaces','models'],['plugins','Plugins','plug'],['music','Music','music'],['appearance','Settings','settings']]){
  const b=document.createElement('button');b.className='rail-button';b.title=label;b.setAttribute('aria-label',label);b.innerHTML='<svg viewBox="0 0 24 24">'+icons[icon]+'</svg>';b.onclick=()=>tab==='chat'?document.querySelector('[data-command=sidebar]').click():openSettings(tab);rail.append(b);
 }
 $('app').prepend(rail);
+$('feature-browser').onchange=()=>send('settings',{values:{browser:$('feature-browser').value}});
+
+// Feature destinations have their own dialog; Settings only holds preferences.
+const destinations={models:'Models & APIs',workspaces:'Workspaces',plugins:'Plugins',music:'Music'};
+const featureDialog=document.createElement('dialog');featureDialog.id='feature-dialog';
+featureDialog.innerHTML='<div class="dialog-heading"><h2 tabindex="-1"></h2><button class="icon" aria-label="Close">×</button></div><div class="feature-content"></div>';
+featureDialog.querySelector('button').onclick=()=>featureDialog.close();document.body.append(featureDialog);
+const originalOpenSettings=openSettings;
+openSettings=function(tab='appearance'){
+ if(!destinations[tab]){originalOpenSettings(tab);return;}
+ if(!state)return;
+ saveDraft();document.querySelectorAll('dialog[open]').forEach(d=>d.close());
+ fillSettings();
+ for(const name of Object.keys(destinations)){
+  const section=document.querySelector(`[data-section="${name}"]`);
+  featureDialog.querySelector('.feature-content').append(section);section.hidden=name!==tab;
+ }
+ featureDialog.querySelector('h2').textContent=destinations[tab];featureDialog.showModal();
+ renderFeatures();featureDialog.querySelector('h2').focus({preventScroll:true});featureDialog.querySelector('.feature-content').scrollTop=0;
+};
+for(const name of Object.keys(destinations))document.querySelector(`[data-tab="${name}"]`)?.remove();
+document.querySelector('.side-bottom [data-command="plugins"]')?.remove();
+for(const button of rail.querySelectorAll('button'))button.dataset.tooltip=button.getAttribute('aria-label');
+
+let catalogRequest='';
+const apiSection=document.querySelector('[data-section="models"]');
+const apiSaveRow=$('api-save').parentElement;
+apiSection.insertBefore($('api-model').closest('label'),apiSaveRow);
+apiSection.insertBefore($('api-vision').closest('label'),apiSaveRow);
+$('api-save').textContent='Save connection and models';
+for(const note of apiSection.querySelectorAll('p'))if(note.textContent.startsWith('Save again'))note.textContent='Choose models from your provider, or enter a custom model ID. Screen context needs an image-capable model.';
+function refreshModelPickers(){
+ for(const [inputId,listId] of [['api-model','api-models'],['api-vision','api-screen-models']]){
+  let picker=$(inputId+'-picker');
+  if(!picker){picker=document.createElement('select');picker.id=inputId+'-picker';picker.setAttribute('aria-label',inputId==='api-model'?'Available chat models':'Available screen models');$(inputId).before(picker);picker.onchange=()=>{if(picker.value)$(inputId).value=picker.value;};}
+  options(picker,[['','Choose an available model'],...[...$(listId).options].map(o=>[o.value,o.value])],$(inputId).value);
+ }
+}
+const originalLoadProfile=loadProfile;
+loadProfile=function(id){originalLoadProfile(id);$('api-load').disabled=false;refreshModelPickers();};
+$('api-load').textContent='Find available models';
+$('api-load').onclick=()=>{
+ catalogRequest=String(Date.now());$('api-load').disabled=true;$('api-status').textContent='Fetching available models…';
+ send('api_catalog_preview',{request_id:catalogRequest,id:$('api-profile').value,base_url:$('api-url').value,key:$('api-key').value,provider_type:providerPreset($('api-preset').value).provider_type});
+};
+$('api-key').addEventListener('change',()=>{if($('api-key').value.trim())$('api-load').click();});
+const originalPresetChange=$('api-preset').onchange;
+$('api-preset').onchange=()=>{catalogRequest='';originalPresetChange();$('api-model').value='';$('api-vision').value='';modelOptions('api-models',null);refreshModelPickers();$('api-load').disabled=false;};
+
+function showWelcomeGuide(){
+ const dialog=document.createElement('dialog');dialog.className='welcome-guide';
+ dialog.innerHTML='<div class="dialog-heading"><h2>Welcome to Sleepy</h2></div><div class="picker-body"><p>Want a quick guide to your new desktop companion?</p><button class="primary" id="guide-start">Show me around</button> <button class="secondary" id="guide-skip">Skip</button><div id="guide-content" hidden><h3>Connect your AI</h3><p>Open Models & APIs in the left rail. Choose a provider, paste your own API key, and find available models. Choose a chat model and an image-capable screen model, then save. Your key is kept in the system credential vault. Provider charges and limits apply.</p><h3>Your screen</h3><p>Enable Screen on to include a fresh screenshot when you send a message. Select a screen area for small text. Turn it off for ordinary chat. Screenshots go to your selected AI provider.</p><h3>Apps, browser and workspaces</h3><p>Open Workspaces. Select your default browser under Open websites with. Add installed apps. Create a named preset with apps and website addresses, then say “Open my Physics preset”. Window arrangement depends on your desktop; Wayland may restrict it.</p><h3>Files and plugins</h3><p>Choose a file workspace folder before asking to create folders, rename files or organize PDFs. Review proposed changes. Plugins includes GitHub connection and repository creation, document attachments, and chat export.</p><h3>Voice and music</h3><p>Hold the ball or microphone button to speak; release to finish. A working microphone is required. Configure voices in Settings. Use Music to select SoundCloud or local files; pause, resume or close playback there.</p><h3>Study and chat</h3><p>Ask for a flowchart, use /flashcards to study or /eli5 for a simple explanation. Rename or delete conversations from chat history. Settings holds appearance, companion, voice, memories and privacy preferences.</p><h3>Permissions and help</h3><p>On macOS allow Screen Recording for screenshots, Microphone for voice and Accessibility for window controls in System Settings → Privacy & Security. Restart Sleepy after permission changes. On Linux choose a screen when prompted by your desktop and check Sound → Input if recording fails. If an API request fails, check the displayed error, selected model, key and provider quota.</p><button class="primary" id="guide-done">Start using Sleepy</button></div></div>';
+ document.body.append(dialog);dialog.showModal();
+ const finish=()=>{dialog.close();dialog.remove();};dialog.querySelector('#guide-skip').onclick=finish;dialog.querySelector('#guide-done').onclick=finish;
+ dialog.querySelector('#guide-start').onclick=()=>{dialog.querySelector('#guide-content').hidden=false;dialog.querySelector('#guide-start').hidden=true;dialog.querySelector('#guide-skip').hidden=true;};
+ dialog.addEventListener('cancel',()=>dialog.remove());
+}

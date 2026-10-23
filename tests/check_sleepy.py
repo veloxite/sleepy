@@ -73,7 +73,11 @@ def run():
             pump()
             assert js(w,'document.body.dataset.theme')=='dark'
             w.showMaximized();pump();assert w.isMaximized() and not w.face.isVisible()
+            w.fullscreen();pump();assert not w.isMaximized() and not w.isFullScreen()
             w.fullscreen();pump();assert w.isFullScreen() and not w.face.isVisible()
+            w.hide();pump();w.show_chat();pump(.5)
+            assert not w.isFullScreen() and not w.isMaximized()
+            assert w.view.width()==w.centralWidget().width()
             w.showNormal();pump();assert w.face.isVisible()
             center=w.face.geometry().center()
             w.face.next_blink=time.monotonic()+100

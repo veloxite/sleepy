@@ -74,6 +74,7 @@ def main():
                     app.processEvents();time.sleep(.02)
             # A localhost fixture avoids credential access and network requests.
             js("openSettings('models');$('api-name').value='Offline fixture';$('api-url').value='http://localhost:11434/v1';$('api-model').value='chat-before';$('api-vision').value='screen-before';$('api-save').click();")
+            assert js("$('feature-dialog').open && !$('settings-dialog').open && !document.querySelector('[data-tab=models]')"), 'Models must open independently of Settings'
             settle()
             js("$('api-model').value='chat-after';$('api-vision').value='screen-after';$('save-settings').click();")
             settle()
