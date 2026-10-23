@@ -17,3 +17,4 @@ exports/
 .test_tmp/
 .repo-audit.json
 _release_admin.py
+_release_v030.py

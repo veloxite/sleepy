@@ -36,6 +36,19 @@ class ConnectionTests(unittest.TestCase):
         self.assertNotIn(b'test-private-key',self.store.path.read_bytes())
         self.assertEqual(self.vault[(SERVICE,p['id'])],'test-private-key')
 
+    def test_catalog_preview_does_not_save_credentials_or_profiles(self):
+        config=self.connections.preview({'base_url':PRESETS['Groq'],'key':'preview-only-key'})
+        self.assertEqual(config['api_key'],'preview-only-key')
+        self.assertEqual(self.connections.profiles(),[])
+        self.assertEqual(self.vault,{})
+        self.assertNotIn(b'preview-only-key',self.store.path.read_bytes())
+
+    def test_catalog_preview_never_reuses_key_for_changed_host(self):
+        profile=self.add()
+        self.assertEqual(self.connections.preview({'id':profile['id'],'base_url':PRESETS['Groq']})['api_key'],'test-private-key')
+        with self.assertRaises(ValueError):
+            self.connections.preview({'id':profile['id'],'base_url':'https://example.com/v1'})
+
     def test_switching_connections_and_chat_vs_screen_models(self):
         first=self.add()
         second=self.add(name='Second',model='second-chat',vision_model='second-vision')
