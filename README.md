@@ -10,8 +10,12 @@ The first release supports Windows 10/11 (x64) and has been tested on a Windows
 
 Read [PRIVACY.md](PRIVACY.md) for what stays local, what is sent to services, how keys are stored, and how deletion and uninstalling work.
 
-## Download the appmacOS and Linux 0.2.0 candidates are being tested. See[platform installation, permissions, and test checklist](CROSS_PLATFORM_TESTING.md).The published Windows 0.1.0 release remains available below.
-
+## Download the app
+
+[Sleepy v0.2.1 testing downloads](https://github.com/veloxite/sleepy/releases/tag/v0.2.1) include Windows, macOS and Linux installers with fixes for saving models and the settings opening position. See the [installation, permissions and testing checklist](CROSS_PLATFORM_TESTING.md). macOS and Linux remain testing candidates.
+
+The stable Windows v0.1.0 release remains available below.
+
 Get the Windows app from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
 Choose the Windows setup `.exe` or portable `.zip` under **Assets**.
 Desktop builds include Python and the UI dependencies. Open Sleepy, go to
