@@ -29,14 +29,19 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           pattern: Sleepy-*
           path: artifacts
+      - uses: actions/checkout@v4
+        if: steps.version.outputs.ready == 'true'
+        with:
+          ref: main
+          path: release-docs
       - name: Prepare draft for device testing
         if: steps.version.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          test -f packaging/CANDIDATE_NOTES.md
+          test -f release-docs/packaging/CANDIDATE_NOTES.md
           find artifacts -name SHA256SUMS.txt -exec cat {} + > SHA256SUMS.txt
-          gh release create v0.2.0-rc.1 --target "$CANDIDATE_SHA" --draft --prerelease --title 'Sleepy 0.2.0 — platform testing candidate' --notes-file packaging/CANDIDATE_NOTES.md
+          gh release create v0.2.0-rc.1 --target "$CANDIDATE_SHA" --draft --prerelease --title 'Sleepy 0.2.0 — platform testing candidate' --notes-file release-docs/packaging/CANDIDATE_NOTES.md
           find artifacts -type f ! -name SHA256SUMS.txt -exec gh release upload v0.2.0-rc.1 {} +
           gh release upload v0.2.0-rc.1 SHA256SUMS.txt
