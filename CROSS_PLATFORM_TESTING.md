@@ -1,7 +1,13 @@
-# macOS and Linux 0.2.0 test builds
+# macOS and Linux 0.2.1 test builds
 
 These builds are candidates for personal testing, not a claim that every desktop
 and device has been validated. The released Windows v0.1.0 downloads are unchanged.
+
+Use the [v0.2.1 testing downloads](https://github.com/veloxite/sleepy/releases/tag/v0.2.1).
+This update also includes a Windows installer with the settings fixes.
+In Models & APIs, both Save connection and Save changes save the chat and screen
+models and activate that connection. Close and reopen Settings, then restart
+Sleepy and verify both models are retained before testing chat and screen input.
 
 ## macOS
 
