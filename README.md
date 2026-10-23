@@ -347,13 +347,3 @@ Some apps enforce minimum sizes or use window titles Sleepy cannot identify; tho
 still open, and Sleepy reports that they could not be arranged. Other platforms
 open the preset but do not automatically arrange its windows.
 
-## Project folders
-
-- `Sleepy.lnk`: the single everyday Windows launcher (created locally).
-- `Create Sleepy Shortcut.ps1`: setup helper to recreate that shortcut.
-- Python files in the root: application modules, plus release/setup helpers.
-- `ui/` and `assets/`: the interface, bundled libraries, and icons.
-- `tests/`: regression tests and developer checks; these do not launch your saved session.
-- `data/`, `.env`, and `venv/`: personal data, local configuration, and dependencies; keep these.
-- `exports/`: your saved documents, including the older Excalidraw drawing.
-- `release/`: clean publication copies, without personal keys or chats.
