@@ -19,6 +19,8 @@ def main():
         import edge_tts
         import yt_dlp
         import keyring
+        import platform_capture
+        import unix_windows
         from PySide6.QtCore import QUrl
         from PySide6.QtWidgets import QApplication
         from PySide6.QtWebEngineWidgets import QWebEngineView

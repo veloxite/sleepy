@@ -23,7 +23,9 @@ def tile_rects(area,count):
 
 def workspace_windows():
     """Visible user windows with title/process identity; never infer shell commands."""
-    if sys.platform!='win32':return {}
+    if sys.platform!='win32':
+        import unix_windows
+        return unix_windows.windows()
     user=C.windll.user32;kernel=C.windll.kernel32;result={}
     user.GetWindowTextW.argtypes=[W.HWND,W.LPWSTR,C.c_int]
     user.IsWindowVisible.argtypes=[W.HWND]
@@ -69,7 +71,9 @@ class WorkspaceLayout:
         try:launch()
         except Exception as e:
             self.failed.append(name+': '+str(e));self.next();return
-        if sys.platform!='win32':self.next();return
+        if sys.platform!='win32':
+            import unix_windows
+            if not unix_windows.supported():self.next();return
         self.timer.start()
 
     def poll(self):
@@ -80,8 +84,10 @@ class WorkspaceLayout:
         # Prefer the newly created window; existing single-instance apps can reuse theirs.
         fresh=[h for h in matches if h not in self.before]
         if fresh or (matches and self.ticks>=5) or self.ticks>=20:
-            user=C.windll.user32;user.GetForegroundWindow.restype=W.HWND
-            foreground=user.GetForegroundWindow()
+            foreground=None
+            if sys.platform=='win32':
+                user=C.windll.user32;user.GetForegroundWindow.restype=W.HWND
+                foreground=user.GetForegroundWindow()
             chosen=(fresh or ([foreground] if foreground in matches else matches))[:1]
             for hwnd in chosen:
                 if hwnd not in self.windows:self.windows.append(hwnd)
@@ -89,6 +95,11 @@ class WorkspaceLayout:
             self.timer.stop();self.next()
 
     def finish(self):
+        if sys.platform!='win32' and self.windows:
+            import unix_windows
+            for hwnd,rect in zip(self.windows,tile_rects(self.screen.availableGeometry(),len(self.windows))):
+                try:unix_windows.move(hwnd,rect)
+                except Exception as error:self.failed.append(str(error))
         if sys.platform=='win32' and self.windows:
             user=C.windll.user32
             user.SetWindowPos.argtypes=[W.HWND,W.HWND,C.c_int,C.c_int,C.c_int,C.c_int,W.UINT]
@@ -100,7 +111,9 @@ class WorkspaceLayout:
             # A preset has intentionally replaced the previous two-window arrangement.
             self.host.layout_pair.saved=None
         message='Workspace ready.' if not self.failed else 'Workspace opened. '+ ' '.join(self.failed)
-        if sys.platform!='win32':message+=' Automatic window arrangement is available on Windows.'
+        if sys.platform!='win32':
+            import unix_windows
+            if not unix_windows.supported():message+=' Use your desktop’s native tiling; on X11 install wmctrl for automatic arrangement.'
         self.host.emit('notice',message=message)
 
 class SideBySide:
