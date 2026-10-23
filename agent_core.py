@@ -5,7 +5,7 @@ import os
 import re
 from pathlib import Path
 
-from dotenv import load_dotenv
+from app_paths import load_source_environment
 from provider_adapters import adapter_for
 from provider_usage import metrics
 from study_tools import command_for, instruction
@@ -63,10 +63,10 @@ def history_text(text):
 
 class Agent:
     def __init__(self, config=None):
-        load_dotenv(Path(__file__).with_name('.env'))
+        load_source_environment()
         key = config['api_key'] if config else os.getenv("GROQ_API_KEY")
         if not key:
-            raise ValueError("Add GROQ_API_KEY to the .env file in this project, then restart.")
+            raise ValueError("Add your API key in Settings → Models & APIs to start chatting.")
         self.config = config or {'api_key':key, 'base_url':'https://api.groq.com/openai/v1', 'provider_type':'openai_compatible'}
         self.adapter = adapter_for(self.config)
         self.client = self.adapter.client

@@ -14,3 +14,6 @@ dist/
 .DS_Store
 
 exports/
+.test_tmp/
+.repo-audit.json
+_release_admin.py

@@ -4,7 +4,9 @@ import sqlite3
 import uuid
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+from app_paths import user_data_dir
+
+DATA_DIR = user_data_dir()
 
 class Store:
     def __init__(self, path=None):

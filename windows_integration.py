@@ -7,6 +7,7 @@ import uuid
 import math
 import os
 import re
+from app_paths import relaunch_command
 
 def tile_rects(area,count):
     """Balanced rows, with no empty cells in the final row."""
@@ -217,11 +218,8 @@ def set_taskbar_identity(hwnd, root):
     release = C.WINFUNCTYPE(W.ULONG, C.c_void_p)(table[2])
     set_value = C.WINFUNCTYPE(C.c_long, C.c_void_p, C.POINTER(PropertyKey), C.POINTER(PropVariant))(table[6])
     try:
-        python = root / 'venv' / 'Scripts' / 'pythonw.exe'
-        if not python.exists():
-            python = sys.executable
         properties = {
-            2: subprocess.list2cmdline([str(python), str(root / 'desktop_agent.py'), '--open']),
+            2: subprocess.list2cmdline(relaunch_command(root)),
             3: str(root / 'assets' / 'sleepy.ico') + ',0',
             4: 'Sleepy',
             5: 'Sleepy.Desktop.1',

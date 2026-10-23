@@ -1,8 +1,10 @@
 # Third-party software
 
 Sleepy's own code and original face icon use the MIT license in `LICENSE`.
-Dependencies retain their respective licenses. This source release vendors only
-frontend libraries and fonts; Python/Qt dependencies are installed separately.
+Dependencies retain their respective licenses. Source releases vendor frontend
+libraries and fonts. Desktop builds also bundle Python/Qt and other runtime
+dependencies, with notices and an exact version inventory in `licenses/`.
+See DISTRIBUTION.md for rebuild instructions and upstream source locations.
 
 ## Vendored UI libraries
 
@@ -22,8 +24,9 @@ See the installed distributions and upstream projects for complete license terms
 
 - [PySide6 / Qt for Python](https://doc.qt.io/qtforpython-6/licenses.html):
   LGPLv3/GPLv3/commercial options; Qt modules and bundled third-party components
-  have their own notices. A future binary installer must include the appropriate
-  Qt and third-party notices and satisfy the chosen distribution license.
+  have their own notices. Desktop builds retain separate replaceable shared
+  libraries and collect dependency notices. Qt sources and module-specific terms
+  are linked in DISTRIBUTION.md.
 - [OpenAI Python SDK](https://github.com/openai/openai-python): Apache-2.0.
 - [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python): MIT.
 - [python-dotenv](https://github.com/theskumar/python-dotenv): BSD-3-Clause.

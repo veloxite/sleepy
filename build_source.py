@@ -6,8 +6,9 @@ import shutil
 import zipfile
 
 BASE=Path(__file__).resolve().parent
-FILES=['README.md','PUBLISHING.md','LICENSE','THIRD_PARTY_NOTICES.md','.gitignore','.env.example',
-       'requirements.txt','desktop_agent.py','sleepy_app.py','focus_overlay.py','agent_core.py',
+FILES=['README.md','LICENSE','THIRD_PARTY_NOTICES.md','.gitignore','.env.example',
+       'requirements.txt','requirements-build.txt','VERSION','Sleepy.spec','build_app.py',
+       'app_paths.py','package_smoke.py','DISTRIBUTION.md','desktop_agent.py','sleepy_app.py','focus_overlay.py','agent_core.py',
        'api_connections.py','github_plugin.py','local_store.py',
        'Create Sleepy Shortcut.ps1','fetch_frontend.py','build_source.py',
        'windows_integration.py','study_tools.py','provider_usage.py','provider_adapters.py',
@@ -16,7 +17,7 @@ SECRET=re.compile(rb'(?:gsk_[A-Za-z0-9]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|github_p
 
 def build():
     sources=[BASE/name for name in FILES]
-    for directory in ('ui','assets','.github','tests'):
+    for directory in ('ui','assets','.github','tests','packaging'):
         sources.extend(p for p in (BASE/directory).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix!='.pyc')
     for source in sources:
         if source.is_symlink() or not source.resolve().is_relative_to(BASE):

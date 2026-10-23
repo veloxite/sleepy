@@ -4,10 +4,19 @@
 
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
-Windows is tested. macOS support is implemented with Qt and Pillow but is not yet
-verified on a Mac. This is a source release, not a packaged installer.
+Windows is the primary tested platform. macOS and Linux desktop builds are
+experimental and need real-device testing.
 
-## Start here
+## Download the app
+
+Get the app for your system from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
+Choose the Windows installer, Mac app ZIP, or Linux .deb/tarball under **Assets**.
+Desktop builds include Python and the UI dependencies. Open Sleepy, go to
+**Settings → Models & APIs**, and enter your own provider key. No code edits or
+`.env` file are needed. See [installation instructions and platform limits](DISTRIBUTION.md).
+Early builds are unsigned previews; macOS/Linux are experimental.
+
+## Run from source (developers)
 
 Install Python 3.12 or newer, download/extract this project, and open a terminal
 in its folder. The tested Windows environment uses Python 3.14 and PySide6 6.12.
@@ -23,7 +32,8 @@ python -m venv venv
 After setup, run **Create Sleepy Shortcut.ps1** once and double-click
 **Sleepy.lnk** whenever you want to open Sleepy. Sleepy supplies its own Windows icon and relaunch command.
 Unpin any old Python/Sleepy entry, open the updated app, and pin its running window
-once to replace Windows' cached shortcut. No executable build is needed.
+once to replace Windows' cached shortcut. The script is only for source users;
+installed builds create their own Start menu shortcut.
 
 **macOS (needs testing)**
 
@@ -36,8 +46,8 @@ venv/bin/python desktop_agent.py --open
 Allow screen recording for the app/terminal running Python in macOS System
 Settings when you want screen context. Restart Sleepy after changing permission.
 Choose online natural voices or native macOS voices in Settings → Voice.
-Microphone permission is required for push-to-talk. The Windows VBS and shortcut script do not run on a Mac. A signed
-macOS application bundle is not included. Dependencies must offer wheels for
+Microphone permission is required for push-to-talk. The Windows shortcut script does not run on a Mac.
+Dependencies must offer wheels for
 your Python version, OS version, and architecture.
 
 ## Bring your own AI

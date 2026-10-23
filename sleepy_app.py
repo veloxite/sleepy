@@ -13,7 +13,7 @@ import ctypes
 import io
 from pathlib import Path
 
-from dotenv import load_dotenv
+from app_paths import RESOURCE_DIR, load_source_environment
 from PIL import Image, ImageGrab, ImageOps, ImageSequence
 from PySide6.QtCore import Qt, QTimer, QObject, Signal, Slot, QUrl, QRectF, QPointF, QEvent, QBuffer, QIODevice
 from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QPixmap, QCursor, QIcon, QDesktopServices, QAction, QKeySequence, QShortcut, QMovie
@@ -35,8 +35,8 @@ from assistant_features import AssistantFeatures
 from desktop_actions import explicit_action,open_url
 from web_media import search_images
 
-BASE = Path(__file__).resolve().parent
-load_dotenv(BASE / '.env')
+BASE = RESOURCE_DIR
+load_source_environment()
 DEFAULTS = {'theme': 'light', 'background': 'glow', 'accent': '#5365ed', 'display_name': '',
             'font_size': 15, 'motion': True, 'dot_size': 72, 'proximity': 180, 'dot_style': 'eyes',
             'capture_target': 'Primary display', 'screen_enabled': True, 'memories': '',
