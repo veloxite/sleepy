@@ -1,4 +1,8 @@
-# macOS and Linux 0.2.1 test builds
+# Historical v0.2.1 platform testing checklist
+
+For v0.3.0 installation use the instructions directly in the README or release
+notes. The maintainer reports that v0.2.1 worked on Linux Mint except microphone
+input, which could not be tested without an input device. macOS remains experimental.
 
 These builds are candidates for personal testing, not a claim that every desktop
 and device has been validated. The released Windows v0.1.0 downloads are unchanged.

@@ -1,9 +1,12 @@
 # Download and install Sleepy
 
-The first release supports Windows 10/11 (x64). We are working on macOS and Linux;
-downloads will be available soon after further testing.
+Version 0.3.0 provides Windows and Linux downloads, plus experimental macOS builds.
+Linux Mint was manually tested with v0.2.1, except microphone input. Other Linux
+distributions and macOS still need real-device testing. Full installation,
+permission and troubleshooting instructions are included directly in the README
+and release notes.
 
-Get Windows downloads from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
+Get downloads from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
 GitHub's automatically generated **Source code** archives are for developers;
 choose a Sleepy app asset for your operating system instead.
 
@@ -11,29 +14,35 @@ choose a Sleepy app asset for your operating system instead.
 | --- | --- | --- |
 | Windows 10/11, 64-bit | `windows-x64-setup.exe` | Run the installer, then open Sleepy from Start. No administrator account required. |
 | Windows portable | `windows-x64-portable.zip` | Extract the entire folder, then run `Sleepy.exe`. Keep `_internal` beside it. |
+| Mint 22 / Ubuntu 24.04+, x64 | `linux-x64.deb` | Double-click and install required dependencies. |
+| Recent Fedora, x64 (untested) | `linux-x64.rpm` | Install with the package manager. |
+| Other compatible Linux, x64 (untested) | `linux-x64.tar.gz` | Extract the complete folder; requires glibc 2.39+. |
+| Apple Silicon macOS 14+, experimental | `macos-arm64.dmg` | Drag Sleepy to Applications. |
+| Intel macOS 15+, experimental | `macos-x64.dmg` | Drag Sleepy to Applications. |
 
 No Python install, source edits, or `.env` file is needed. In Sleepy, open
-**Settings → Models & APIs → Add connection**, select a provider, enter your own
+**Models & APIs → Add connection**, select a provider, enter your own
 key, load/select models, and use the connection. Provider accounts and usage are
 separate from Sleepy. Ollama requires a separately installed local model server.
 
 ## Release status and platform limits
 
 The Windows release has been tested on a Windows laptop. It is unsigned, so
-Windows can show a reputation warning. Planned Mac bundles are ad-hoc signed,
+Windows can show a reputation warning. Mac bundles are ad-hoc signed,
 not Apple notarized; Gatekeeper may block them.
 If you trust the release, use macOS Privacy & Security → Open Anyway. Do not
 disable security protection globally. No signing subscription is required to
 build the source, but trusted commercial signing is not configured here.
 
-macOS/Linux need testing on real user machines. The build workflow checks that
+macOS and untested Linux desktops need testing on real user machines. The build workflow checks that
 the packaged runtime and offline chat renderer start; it cannot verify real
 microphones, speakers, screen permissions, or every provider account.
 Mac builds target macOS 14+ (Apple Silicon) and macOS 15+ (Intel).
 Linux targets Ubuntu 24.04/glibc 2.39 or later, with a running desktop and an
 unlocked Secret Service credential vault such as GNOME Keyring. No insecure
 plaintext-key fallback is installed. X11 is the intended Linux screen-capture
-environment; Wayland support varies. Automatic window tiling is Windows-only.
+environment; Wayland uses the system screen-sharing portal and can restrict tiling.
+Window arrangement on macOS requires Accessibility; X11 uses wmctrl.
 On macOS allow Screen Recording and Microphone access when using those features.
 Online voices and music depend on external services and internet access.
 
@@ -78,10 +87,10 @@ or in its standard installation directory for the setup executable. Linux uses
 licenses, and SHA-256 download checksums.
 
 The **Build desktop apps** GitHub Actions workflow can be run manually. A tag
-matching VERSION (for example `v0.1.0`) builds Windows x64 and creates a
+matching VERSION (for example `v0.3.0`) builds the platform matrix and creates a
 **draft release** only after all checks pass. Review and test the downloaded app,
-then publish the draft. Do not present macOS or Linux targets as available until
-their real-device testing is complete. The unit workflow also runs on ordinary
+then publish the draft. Label experimental targets and state exactly which
+devices were tested. The unit workflow also runs on ordinary
 pushes and pull requests.
 
 ## Dependency licenses
