@@ -33,8 +33,8 @@ and run Sleepy from the extracted folder. Keep its bundled files together.
 An AppImage is not yet provided. The portable tarball still needs system desktop,
 graphics, audio, and credential-vault libraries; it is not dependency-free.
 
-On a recent Fedora release install with `sudo dnf install ./Sleepy-0.2.0-linux-x64.rpm`.
-On Mint 22 / Ubuntu 24.04 install with `sudo apt install ./Sleepy-0.2.0-linux-x64.deb`.
+On a recent Fedora release install with `sudo dnf install ./Sleepy-0.2.1-linux-x64.rpm`.
+On Mint 22 / Ubuntu 24.04 install with `sudo apt install ./Sleepy-0.2.1-linux-x64.deb`.
 These commands let the package manager install required system dependencies.
 Portable users should install the equivalent Qt/X11 graphics dependencies and
 PipeWire/PulseAudio libraries through their own distribution's package manager.
