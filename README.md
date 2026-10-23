@@ -201,7 +201,6 @@ could be reactivated by a background state update; it now unloads after roughly
 
 ## Development and publishing
 
-See [PUBLISHING.md](PUBLISHING.md) for the safe source-release and GitHub steps.
 This project's own code is MIT licensed; dependency notices are in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
