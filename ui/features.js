@@ -47,6 +47,7 @@ window.renderFeatures=function(){
  if(preview){const card=document.createElement('div');card.className='repo-card';const title=document.createElement('strong');title.textContent='Review action';const details=document.createElement('pre');details.textContent=preview.lines.join('\n');card.append(title,details,actionButton('Continue',()=>send('desktop_confirm',{id:preview.id})),actionButton('Cancel',()=>send('desktop_cancel')));box.append(card);}
 };
 window.handleFeatureEvent=function(event){
+ if(event.type==='error')$('api-load').disabled=false;
  if(event.type==='welcome_guide'){showWelcomeGuide();return true;}
  if(event.type==='api_catalog'){
   if(event.request_id!==catalogRequest)return true;
