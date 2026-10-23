@@ -52,6 +52,7 @@ jobs:
         if: runner.os == 'macOS'
         run: ./dist/Sleepy.app/Contents/MacOS/Sleepy --self-test "$PWD/build/smoke.json"
       - name: Require successful renderer check
+        if: always()
         run: python -c "import json; r=json.load(open('build/smoke.json')); print(r); assert r['ok']"
       - run: python build_app.py --package
       - uses: actions/upload-artifact@v4

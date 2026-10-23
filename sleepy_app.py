@@ -236,7 +236,7 @@ class Face(QWidget):
 
 class LocalPage(QWebEnginePage):
     def acceptNavigationRequest(self, url, kind, main):
-        return url.scheme() == 'file' and Path(url.toLocalFile()).resolve() == BASE / 'ui' / 'index.html'
+        return url.scheme() == 'file' and Path(url.toLocalFile()).resolve() == (BASE / 'ui' / 'index.html').resolve()
 
 
 class Bridge(QObject):

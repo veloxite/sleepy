@@ -50,7 +50,7 @@ def main():
             while (not loaded or not window.page_ready) and time.monotonic() < deadline:
                 app.processEvents()
                 time.sleep(.02)
-            assert loaded and loaded[0] and window.page_ready, 'Bundled UI/bridge failed to load'
+            assert loaded and loaded[0] and window.page_ready, f'Bundled UI/bridge failed to load (load results={loaded}, bridge={window.page_ready})'
             answer = []
             window.page.runJavaScript("typeof marked !== 'undefined' && typeof katex !== 'undefined' && !!document.getElementById('prompt') && state.connections.profiles.length === 0", answer.append)
             while not answer and time.monotonic() < deadline:
@@ -65,4 +65,6 @@ def main():
         result['error'] = type(error).__name__ + ': ' + str(error)
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(json.dumps(result, indent=2), encoding='utf-8')
+    if sys.stdout is not None:
+        print(json.dumps(result, indent=2), flush=True)
     return 0 if result['ok'] else 1
