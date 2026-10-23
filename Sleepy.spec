@@ -24,4 +24,5 @@ if sys.platform == 'darwin':
                  bundle_identifier='io.github.veloxite.sleepy',
                  info_plist={'CFBundleShortVersionString': (root / 'VERSION').read_text().strip(),
                              'NSMicrophoneUsageDescription': 'Sleepy uses your microphone only while you hold push-to-talk.',
+                             'NSScreenCaptureUsageDescription': 'Sleepy captures your selected screen only when you ask for screen context.',
                              'NSHighResolutionCapable': True})

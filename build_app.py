@@ -58,6 +58,14 @@ def package():
             raise SystemExit('Portable ZIP built. Install Inno Setup 6 to also build the Windows installer.')
         subprocess.run([compiler, '/DAppVersion=' + version, str(ROOT / 'packaging' / 'windows.iss')], check=True)
     elif sys.platform == 'darwin':
+        stage = ROOT / 'build' / 'dmg-stage'
+        stage.mkdir(parents=True, exist_ok=True)
+        subprocess.run(['ditto', str(ROOT / 'dist' / 'Sleepy.app'), str(stage / 'Sleepy.app')], check=True)
+        applications = stage / 'Applications'
+        if not applications.exists():
+            applications.symlink_to('/Applications')
+        subprocess.run(['hdiutil', 'create', '-volname', 'Sleepy', '-srcfolder', str(stage),
+                        '-ov', '-format', 'UDZO', str(output / f'Sleepy-{version}-macos-{arch}.dmg')], check=True)
         # ditto preserves bundle symlinks and executable permissions.
         subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
                         str(ROOT / 'dist' / 'Sleepy.app'), str(output / f'Sleepy-{version}-macos-{arch}.zip')], check=True)
@@ -87,7 +95,38 @@ def package():
             shutil.copy2(ROOT / 'assets' / 'sleepy.png', icon)
             subprocess.run(['dpkg-deb', '--root-owner-group', '--build', str(package_root),
                             str(output / f'Sleepy-{version}-linux-{arch}.deb')], check=True)
-    files = sorted(p for p in output.iterdir() if p.is_file() and p.suffix in ('.zip', '.gz', '.deb', '.exe'))
+            if shutil.which('rpmbuild'):
+                rpmroot = ROOT / 'build' / 'rpm'
+                for directory in ('BUILD', 'RPMS', 'SOURCES', 'SPECS', 'SRPMS'):
+                    (rpmroot / directory).mkdir(parents=True, exist_ok=True)
+                spec = rpmroot / 'SPECS' / 'sleepy.spec'
+                spec.write_text(f'''Name: sleepy
+Version: {version}
+Release: 1
+Summary: Desktop AI companion using your own provider keys
+License: MIT
+URL: https://github.com/veloxite/sleepy
+AutoReqProv: no
+Requires: glibc >= 2.39, libglvnd-glx, libglvnd-egl, nss, libxkbcommon-x11, xcb-util-cursor, xcb-util-wm, xcb-util-keysyms, libXcomposite, libXdamage, libXrandr, libXtst, alsa-lib, pulseaudio-libs, dbus-libs, fontconfig
+
+%description
+Sleepy desktop assistant. Requires a desktop session and unlocked credential vault.
+
+%install
+mkdir -p %{{buildroot}}
+cp -a {package_root}/opt %{{buildroot}}/
+cp -a {package_root}/usr %{{buildroot}}/
+
+%files
+/opt/sleepy
+/usr/share/applications/sleepy.desktop
+/usr/share/icons/hicolor/256x256/apps/sleepy.png
+''', encoding='utf-8')
+                subprocess.run(['rpmbuild', '--define', '_topdir ' + str(rpmroot),
+                                '--define', '__os_install_post %{nil}', '-bb', str(spec)], check=True)
+                for built in (rpmroot / 'RPMS').rglob('*.rpm'):
+                    shutil.copy2(built, output / f'Sleepy-{version}-linux-{arch}.rpm')
+    files = sorted(p for p in output.iterdir() if p.is_file() and p.suffix in ('.zip', '.gz', '.deb', '.exe', '.dmg', '.rpm'))
     checksums = []
     for path in files:
         with path.open('rb') as stream:

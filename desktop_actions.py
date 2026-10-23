@@ -21,11 +21,11 @@ def installed_apps():
             path=Path(os.environ.get('WINDIR','C:/Windows'))/'System32'/filename
             if path.exists():found[name]=str(path)
     elif sys.platform=='darwin':
-        for base in (Path('/Applications'),Path.home()/'Applications'):
+        for base in (Path('/Applications'),Path('/System/Applications'),Path.home()/'Applications'):
             if base.exists():
                 for path in base.glob('*.app'):found[path.stem]=str(path)
     else:
-        for base in (Path('/usr/share/applications'),Path.home()/'.local/share/applications'):
+        for base in (Path('/usr/share/applications'),Path('/var/lib/flatpak/exports/share/applications'),Path.home()/'.local/share/flatpak/exports/share/applications',Path.home()/'.local/share/applications'):
             if base.exists():
                 for path in base.glob('*.desktop'):
                     try:

@@ -31,6 +31,7 @@ from api_connections import Connections, fetch_catalog, test_connection
 from provider_usage import record
 from focus_overlay import FocusOverlay
 from windows_integration import CaptureExclusion, set_taskbar_identity, SideBySide
+import platform_capture
 from assistant_features import AssistantFeatures
 from desktop_actions import explicit_action,open_url
 from web_media import search_images
@@ -671,7 +672,7 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
             self.publish()
         def select():
             try:
-                picture=ImageGrab.grab()
+                picture=platform_capture.grab()
                 self.focus_overlay=FocusOverlay(picture,QApplication.primaryScreen().geometry())
                 self.focus_overlay.selected.connect(restore)
                 self.focus_overlay.setAttribute(Qt.WA_DeleteOnClose)
@@ -685,7 +686,7 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
     def capture_and_start(self):
         error = None
         try:
-            image=ImageGrab.grab(all_screens=self.prefs['capture_target'] == 'All displays' and self.capture_region is None)
+            image=platform_capture.grab(all_screens=self.prefs['capture_target'] == 'All displays' and self.capture_region is None)
             if self.capture_region:
                 box,size=self.capture_region
                 if image.size!=size:

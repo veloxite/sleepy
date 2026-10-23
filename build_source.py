@@ -8,7 +8,7 @@ import zipfile
 BASE=Path(__file__).resolve().parent
 FILES=['README.md','PRIVACY.md','LICENSE','THIRD_PARTY_NOTICES.md','.gitignore','.env.example',
        'requirements.txt','requirements-build.txt','VERSION','Sleepy.spec','build_app.py',
-       'app_paths.py','package_smoke.py','DISTRIBUTION.md','desktop_agent.py','sleepy_app.py','focus_overlay.py','agent_core.py',
+       'app_paths.py','platform_capture.py','package_smoke.py','DISTRIBUTION.md','desktop_agent.py','sleepy_app.py','focus_overlay.py','agent_core.py',
        'api_connections.py','github_plugin.py','local_store.py',
        'Create Sleepy Shortcut.ps1','fetch_frontend.py','build_source.py',
        'windows_integration.py','study_tools.py','provider_usage.py','provider_adapters.py',
