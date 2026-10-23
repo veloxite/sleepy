@@ -4,8 +4,7 @@
 
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
-The first release is for Windows 10/11 (x64). We are working on macOS and Linux
-support; downloads for those platforms will be available soon after further testing.
+The first release supports Windows 10/11 (x64) and has been tested on a Windowslaptop. We are working on macOS and Linux support; downloads for those platformswill be available after further testing.
 
 **Your desktop. Your data. Your control.** Sleepy is built with privacy in mind, giving you control over your AI providers, API keys, and personal information. Its open-source code lets anyone inspect how the assistant works and handles data.
 
@@ -18,7 +17,7 @@ Choose the Windows setup `.exe` or portable `.zip` under **Assets**.
 Desktop builds include Python and the UI dependencies. Open Sleepy, go to
 **Settings → Models & APIs**, and enter your own provider key. No code edits or
 `.env` file are needed. See [installation instructions and platform limits](DISTRIBUTION.md).
-This first Windows release is an unsigned preview. Windows may show a SmartScreen
+This Windows release is unsigned. Windows may show a SmartScreen
 warning. macOS and Linux downloads are not included in this release.
 
 ## Run from source (developers)

@@ -76,12 +76,12 @@ jobs:
         with:
           pattern: Sleepy-*
           path: artifacts
-      - name: Publish a draft for human device testing
+      - name: Publish a draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "${GITHUB_REF_NAME#v}" = "$(cat VERSION)"
           find artifacts -name SHA256SUMS.txt -exec cat {} + > SHA256SUMS.txt
-          gh release create "$GITHUB_REF_NAME" --draft --prerelease --title "Sleepy $GITHUB_REF_NAME (preview)" --notes-file packaging/RELEASE_NOTES.md
+          gh release create "$GITHUB_REF_NAME" --draft --title "Sleepy $GITHUB_REF_NAME" --notes-file packaging/RELEASE_NOTES.md
           find artifacts -type f ! -name SHA256SUMS.txt -exec gh release upload "$GITHUB_REF_NAME" {} +
           gh release upload "$GITHUB_REF_NAME" SHA256SUMS.txt

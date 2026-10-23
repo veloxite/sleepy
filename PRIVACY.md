@@ -1,6 +1,6 @@
 # Sleepy privacy
 
-This document describes Sleepy 0.1.0, the Windows desktop preview. Sleepy lets
+This document describes Sleepy 0.1.0, the Windows desktop release. Sleepy lets
 you choose your AI provider and use your own API key. Privacy does not mean
 everything stays offline: the features below send data to services you choose
 or use. Those services have their own retention rules and privacy policies.

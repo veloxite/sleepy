@@ -17,10 +17,11 @@ No Python install, source edits, or `.env` file is needed. In Sleepy, open
 key, load/select models, and use the connection. Provider accounts and usage are
 separate from Sleepy. Ollama requires a separately installed local model server.
 
-## Preview status and platform limits
+## Release status and platform limits
 
-These are unsigned preview builds. Windows can show a reputation warning. The
-Mac bundles are ad-hoc signed, not Apple notarized; Gatekeeper may block them.
+The Windows release has been tested on a Windows laptop. It is unsigned, so
+Windows can show a reputation warning. Planned Mac bundles are ad-hoc signed,
+not Apple notarized; Gatekeeper may block them.
 If you trust the release, use macOS Privacy & Security → Open Anyway. Do not
 disable security protection globally. No signing subscription is required to
 build the source, but trusted commercial signing is not configured here.
@@ -78,9 +79,10 @@ licenses, and SHA-256 download checksums.
 
 The **Build desktop apps** GitHub Actions workflow can be run manually. A tag
 matching VERSION (for example `v0.1.0`) builds Windows x64 and creates a
-**draft prerelease** only after all checks pass. Test the downloaded apps on
-actual machines, then publish the draft. Do not present experimental targets as
-fully verified. The unit workflow also runs on ordinary pushes and pull requests.
+**draft release** only after all checks pass. Review and test the downloaded app,
+then publish the draft. Do not present macOS or Linux targets as available until
+their real-device testing is complete. The unit workflow also runs on ordinary
+pushes and pull requests.
 
 ## Dependency licenses
 
