@@ -1,6 +1,9 @@
 # Download and install Sleepy
 
-Get desktop downloads from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
+The first release supports Windows 10/11 (x64). We are working on macOS and Linux;
+downloads will be available soon after further testing.
+
+Get Windows downloads from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
 GitHub's automatically generated **Source code** archives are for developers;
 choose a Sleepy app asset for your operating system instead.
 
@@ -8,10 +11,6 @@ choose a Sleepy app asset for your operating system instead.
 | --- | --- | --- |
 | Windows 10/11, 64-bit | `windows-x64-setup.exe` | Run the installer, then open Sleepy from Start. No administrator account required. |
 | Windows portable | `windows-x64-portable.zip` | Extract the entire folder, then run `Sleepy.exe`. Keep `_internal` beside it. |
-| Apple Silicon Mac | `macos-arm64.zip` | Extract, drag Sleepy.app into Applications, then open it. |
-| Intel Mac | `macos-x64.zip` | Extract, drag Sleepy.app into Applications, then open it. |
-| Ubuntu 24.04 / compatible Linux, x64 | `linux-x64.deb` | Open with the system software installer. |
-| Linux portable, x64 | `linux-x64.tar.gz` | Extract the folder and run `Sleepy`. Requires the same system libraries as the .deb. |
 
 No Python install, source edits, or `.env` file is needed. In Sleepy, open
 **Settings → Models & APIs → Add connection**, select a provider, enter your own
@@ -78,7 +77,7 @@ or in its standard installation directory for the setup executable. Linux uses
 licenses, and SHA-256 download checksums.
 
 The **Build desktop apps** GitHub Actions workflow can be run manually. A tag
-matching VERSION (for example `v0.1.0`) builds all four targets and creates a
+matching VERSION (for example `v0.1.0`) builds Windows x64 and creates a
 **draft prerelease** only after all checks pass. Test the downloaded apps on
 actual machines, then publish the draft. Do not present experimental targets as
 fully verified. The unit workflow also runs on ordinary pushes and pull requests.

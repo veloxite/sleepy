@@ -1,20 +1,16 @@
-Sleepy's first desktop preview. Install the app, open **Settings → Models & APIs**,
-choose a provider, and enter your own API key. Python and .env files are not required.
+Sleepy 0.1.0 — first Windows preview
 
-- **Windows:** download `windows-x64-setup.exe`, or extract the portable ZIP and open `Sleepy.exe`.
-- **Mac:** choose `macos-arm64.zip` for Apple Silicon or `macos-x64.zip` for Intel. Extract and move Sleepy.app to Applications.
-- **Linux:** the `.deb` targets Ubuntu 24.04 or compatible systems. The tarball is also available; extract it and open `Sleepy`.
+**Your desktop. Your data. Your control.** Sleepy is built with privacy in mind, giving you control over your AI providers, API keys, and personal information. Its open-source code lets anyone inspect how the assistant works and handles data.
 
-These early builds are unsigned. macOS builds are not notarized; Gatekeeper can block them.
-Use System Settings → Privacy & Security → Open Anyway only after checking the download source.
-Windows may show a SmartScreen reputation warning.
+For Windows 10/11, x64:
+- Download `Sleepy-0.1.0-windows-x64-setup.exe` for the installer.
+- Or extract the entire portable ZIP and run `Sleepy.exe`, keeping its bundled files together.
+- Open Settings → Models & APIs, choose a provider, and enter your own API key. No Python installation or .env file is needed.
 
-macOS/Linux are experimental. Automated renderer tests do not replace testing microphone,
-screen recording, key storage, and music on real devices. Linux screen capture is intended
-for X11; Wayland capture support varies. Window tiling is Windows-only.
+macOS and Linux support is in development; downloads will be available soon after further testing.
 
-Keys stay in the operating system credential store. Screenshots and prompts are sent to
-the provider you choose when you request an answer. Online voices and music need internet.
-Provider use may have its own charges. No API key or paid subscription is included.
+This is an unsigned preview. Windows may show a SmartScreen reputation warning. Automated unit and packaged startup/UI checks pass; full manual install/uninstall and hardware testing are still needed. Please report issues with reproduction steps, without including API keys or personal screenshots.
 
-See DISTRIBUTION.md for system requirements, data locations, rebuild instructions, and licenses.
+Keys use the operating system credential vault. Prompts and selected screen/document context go to your chosen provider. Chats are stored locally without database encryption. Online speech sends reply text to Microsoft's speech service; music and image search use external services. Provider charges and policies apply. No shared API key is included.
+
+See DISTRIBUTION.md for installation, user data, updates, and licenses.

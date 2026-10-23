@@ -4,17 +4,20 @@
 
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
-Windows is the primary tested platform. macOS and Linux desktop builds are
-experimental and need real-device testing.
+The first release is for Windows 10/11 (x64). We are working on macOS and Linux
+support; downloads for those platforms will be available soon after further testing.
+
+**Your desktop. Your data. Your control.** Sleepy is built with privacy in mind, giving you control over your AI providers, API keys, and personal information. Its open-source code lets anyone inspect how the assistant works and handles data.
 
 ## Download the app
 
-Get the app for your system from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
-Choose the Windows installer, Mac app ZIP, or Linux .deb/tarball under **Assets**.
+Get the Windows app from [GitHub Releases](https://github.com/veloxite/sleepy/releases).
+Choose the Windows setup `.exe` or portable `.zip` under **Assets**.
 Desktop builds include Python and the UI dependencies. Open Sleepy, go to
 **Settings → Models & APIs**, and enter your own provider key. No code edits or
 `.env` file are needed. See [installation instructions and platform limits](DISTRIBUTION.md).
-Early builds are unsigned previews; macOS/Linux are experimental.
+This first Windows release is an unsigned preview. Windows may show a SmartScreen
+warning. macOS and Linux downloads are not included in this release.
 
 ## Run from source (developers)
 
@@ -146,8 +149,9 @@ are described below.
 
 ## Local data and idle behavior
 
-Chats, drafts, preferences, connection metadata, and memories are stored in
-`data/agent.sqlite3`. Custom logos are copied into `data/`. The database is
+Installed Windows builds store chats, drafts, preferences, connection metadata,
+memories, and custom logos in `%LOCALAPPDATA%\Sleepy`. Source builds use
+`data/agent.sqlite3` and `data/`. The database is
 not encrypted; cloud-sync folders may sync it. AI requests include the current
 message, up to 16 prior text messages, memories, and any selected screen/document
 context. Your selected provider's data policies apply.
@@ -230,7 +234,7 @@ are installed from `requirements.txt`.
 ## Study commands
 
 Open **/ Commands** or press **Ctrl+K** (Command+K on Mac). Select a command,
-add your question, and send. Screen and attached documents work with all four.
+add your question, and send. Screen and attached documents work with all three.
 
 - `/mermaid`: produces a flowchart. The local Mermaid renderer loads when the
   diagram comes into view. Source stays available if a diagram is invalid.
