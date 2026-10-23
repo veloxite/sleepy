@@ -1,4 +1,4 @@
-# macOS and Linux test builds
+# macOS and Linux 0.2.0 test builds
 
 These builds are candidates for personal testing, not a claim that every desktop
 and device has been validated. The released Windows v0.1.0 downloads are unchanged.
@@ -26,6 +26,12 @@ compatible recent Fedora system. Arch users can extract the portable tarball
 and run Sleepy from the extracted folder. Keep its bundled files together.
 An AppImage is not yet provided. The portable tarball still needs system desktop,
 graphics, audio, and credential-vault libraries; it is not dependency-free.
+
+On a recent Fedora release install with `sudo dnf install ./Sleepy-0.2.0-linux-x64.rpm`.
+On Mint 22 / Ubuntu 24.04 install with `sudo apt install ./Sleepy-0.2.0-linux-x64.deb`.
+These commands let the package manager install required system dependencies.
+Portable users should install the equivalent Qt/X11 graphics dependencies and
+PipeWire/PulseAudio libraries through their own distribution's package manager.
 
 Wayland screen capture uses Qt's system sharing picker. Approve the requested
 display. PipeWire, xdg-desktop-portal, and the portal backend for your desktop

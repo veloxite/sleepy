@@ -1,0 +1,42 @@
+name: Prepare platform candidate
+on:
+  workflow_run:
+    workflows: ['Build desktop apps']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  candidate:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Check candidate version
+        id: version
+        shell: bash
+        run: |
+          if test "$(cat VERSION)" = '0.2.0'; then echo 'ready=true' >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/download-artifact@v4
+        if: steps.version.outputs.ready == 'true'
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: Sleepy-*
+          path: artifacts
+      - name: Prepare draft for device testing
+        if: steps.version.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          test -f packaging/CANDIDATE_NOTES.md
+          find artifacts -name SHA256SUMS.txt -exec cat {} + > SHA256SUMS.txt
+          gh release create v0.2.0-rc.1 --target "$CANDIDATE_SHA" --draft --prerelease --title 'Sleepy 0.2.0 — platform testing candidate' --notes-file packaging/CANDIDATE_NOTES.md
+          find artifacts -type f ! -name SHA256SUMS.txt -exec gh release upload v0.2.0-rc.1 {} +
+          gh release upload v0.2.0-rc.1 SHA256SUMS.txt
