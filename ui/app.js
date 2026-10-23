@@ -141,8 +141,8 @@ $('prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.i
 $('send').onclick=submit;
 $('screen-toggle').onclick=()=>{if(!state)return;state.prefs.screen_enabled=!state.prefs.screen_enabled;applyPrefs(state.prefs);send('settings',{values:{screen_enabled:state.prefs.screen_enabled}});};
 $('search').oninput=renderHistory;
-function openSettings(tab='appearance'){if(!state)return;saveDraft();document.querySelectorAll('dialog[open]').forEach(d=>d.close());fillSettings();selectTab(tab);$('settings-dialog').showModal();if(window.renderFeatures)window.renderFeatures();}
-function selectTab(tab){document.querySelectorAll('[data-section]').forEach(e=>e.hidden=e.dataset.section!==tab);document.querySelectorAll('[data-tab]').forEach(e=>e.classList.toggle('active',e.dataset.tab===tab));}
+function openSettings(tab='appearance'){if(!state)return;saveDraft();document.querySelectorAll('dialog[open]').forEach(d=>d.close());fillSettings();selectTab(tab);$('settings-dialog').showModal();if(window.renderFeatures)window.renderFeatures();const heading=$('settings-dialog').querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});$('settings-dialog').scrollTop=0;document.querySelector('.settings-content').scrollTop=0;document.querySelector('.settings-tabs').scrollTop=0;document.querySelector('.settings-tabs').scrollLeft=0;}
+function selectTab(tab){document.querySelectorAll('[data-section]').forEach(e=>e.hidden=e.dataset.section!==tab);document.querySelectorAll('[data-tab]').forEach(e=>e.classList.toggle('active',e.dataset.tab===tab));document.querySelector('.settings-content').scrollTop=0;document.querySelector('.settings-tabs').scrollTop=0;document.querySelector('.settings-tabs').scrollLeft=0;}
 document.querySelectorAll('[data-tab]').forEach(e=>e.onclick=()=>selectTab(e.dataset.tab));
 document.querySelectorAll('.close-dialog').forEach(e=>e.onclick=()=>e.closest('dialog').close());
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
@@ -163,6 +163,7 @@ function fillSettings(){
 }
 $('pref-font').oninput=()=>$('font-output').value=$('pref-font').value+' px';
 $('save-settings').onclick=()=>{
+ if(!document.querySelector('[data-section="models"]').hidden){$('api-save').click();return;}
  const values={display_name:$('pref-name').value,theme:$('pref-theme').value,background:$('pref-background').value,accent:$('pref-accent').value,font_size:Number($('pref-font').value),dot_style:$('pref-dot-style').value,motion:$('pref-motion').checked,proximity:Number($('pref-proximity').value),dot_size:Number($('pref-dot-size').value),memories:$('pref-memories').value,speech_voice:$('pref-voice').value,speech_rate:Number($('pref-rate').value),capture_target:$('pref-capture').value};
  Object.assign(values,window.featurePrefs?.()||{});send('settings',{values});toast('Settings saved');
 };
@@ -226,7 +227,12 @@ new QWebChannel(qt.webChannelTransport,channel=>{
   if(event.type==='state')acceptState(event);
   else if(event.type==='preferences'){state.prefs=event.prefs;applyPrefs(event.prefs);renderConnections();renderContext();if($('settings-dialog').open){$('pref-background').value=event.prefs.background;$('pref-dot-style').value=event.prefs.dot_style;$('logo-preview').hidden=!event.prefs.logo;if(event.prefs.logo)$('logo-preview').src=event.prefs.logo;}}
   else if(event.type==='error'||event.type==='notice')toast(event.message);
-  else if(event.type==='api_saved'){$('api-status').textContent=event.message;pendingConnection=event.id;}
+  else if(event.type==='api_saved'){
+   $('api-status').textContent=event.message;
+   pendingConnection=event.id;
+   // Wait for the next state event before replacing the form: the local
+   // state still contains the old models at this point.
+  }
   else if(event.type==='api_status'){$('api-status').textContent=event.message;}
   else if(event.type==='file_picker_closed'){if(pickerReturn){openSettings(pickerReturn);pickerReturn=null;}}
   else if(event.type==='plugin_status'){$('plugin-status').textContent=event.message;}

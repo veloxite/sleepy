@@ -1,4 +1,11 @@
-# Sleepy 0.2.0 release candidate
+# Sleepy 0.2.1 — settings fixes and platform testing
+
+Fixes the main Save changes button ignoring chat/screen model edits in Models & APIs.
+Both save buttons now save the model form and activate the saved connection.
+Settings open at the top instead of retaining the previous scroll/focus position.
+Packaged regression checks exercise model edits, both save buttons, reopening the
+form, persisted database values, and settings scroll reset on every platform.
+Existing conversations and connections are retained when upgrading.
 
 Test builds for macOS and Linux, plus a Windows regression build. These downloads
 have automated unit and packaged UI checks. Hardware permissions, audio, screen

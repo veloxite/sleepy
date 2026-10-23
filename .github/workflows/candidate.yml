@@ -21,7 +21,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          if test "$(cat VERSION)" = '0.2.0'; then echo 'ready=true' >> "$GITHUB_OUTPUT"; fi
+          if test "$(cat VERSION)" = '0.2.1'; then echo 'ready=true' >> "$GITHUB_OUTPUT"; fi
       - uses: actions/download-artifact@v4
         if: steps.version.outputs.ready == 'true'
         with:
@@ -42,6 +42,6 @@ jobs:
         run: |
           test -f release-docs/packaging/CANDIDATE_NOTES.md
           find artifacts -name SHA256SUMS.txt -exec cat {} + > SHA256SUMS.txt
-          gh release create v0.2.0-rc.1 --target "$CANDIDATE_SHA" --draft --prerelease --title 'Sleepy 0.2.0 — platform testing candidate' --notes-file release-docs/packaging/CANDIDATE_NOTES.md
-          find artifacts -type f ! -name SHA256SUMS.txt -exec gh release upload v0.2.0-rc.1 {} +
-          gh release upload v0.2.0-rc.1 SHA256SUMS.txt
+          gh release create v0.2.1 --target "$CANDIDATE_SHA" --draft --prerelease --title 'Sleepy v0.2.1 — settings fixes · platform testing' --notes-file release-docs/packaging/CANDIDATE_NOTES.md
+          find artifacts -type f ! -name SHA256SUMS.txt -exec gh release upload v0.2.1 {} +
+          gh release upload v0.2.1 SHA256SUMS.txt

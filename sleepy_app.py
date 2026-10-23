@@ -391,7 +391,11 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
                 raise ValueError('Wait for the current request to finish before changing connections.')
             if action == 'api_save':
                 profile=self.connections.save(data)
-                self.emit('api_saved', id=profile['id'], message='Connection saved. Load models or enter model IDs, then save again.')
+                # Saving a connection is also the user's explicit choice for
+                # the next request. Keep the active profile aligned with the
+                # values just persisted, including chat and screen models.
+                self.connections.select(profile['id'])
+                self.emit('api_saved', id=profile['id'], message='Connection and models saved. This connection is now active.')
             elif action == 'api_select':
                 self.connections.select(data.get('id'), data.get('model'), self.prefs['screen_enabled'])
             elif action == 'api_delete':

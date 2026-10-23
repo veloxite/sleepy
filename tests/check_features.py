@@ -14,6 +14,7 @@ from tests.check_sleepy import app, js, pump
 from sleepy_app import SleepyWindow, image_data
 from focus_overlay import FocusOverlay
 from local_store import Store
+from api_connections import Connections
 
 
 def run():
@@ -27,6 +28,24 @@ def run():
    js(w,"($('api-name').value='Local test', $('api-url').value='http://localhost:11434/v1', $('api-model').value='chat-one', $('api-vision').value='vision-one', $('api-save').click(),true)");pump(.5)
    assert len(w.connections.profiles())==1
    pid=w.connections.active()['id'];assert js(w,"$('api-profile').value")==pid
+   # The global Save changes button must also save the visible model form.
+   # Previously it saved appearance only and silently lost model edits.
+   js(w,"($('api-model').value='updated-chat', $('api-vision').value='updated-screen', $('save-settings').click(),true)");pump(.5)
+   assert w.connections.active()['model']=='updated-chat'
+   assert w.connections.active()['vision_model']=='updated-screen'
+   assert js(w,"$('api-model').value")=='updated-chat'
+   assert js(w,"$('api-vision').value")=='updated-screen'
+   js(w,"($('settings-dialog').close(),openSettings('models'),true)");pump()
+   assert js(w,"$('api-model').value")=='updated-chat'
+   reopened=Store(store.path)
+   try:assert Connections(reopened).active()['vision_model']=='updated-screen'
+   finally:reopened.close()
+   # Returning from a scrolled tab must start at the top, including modal focus.
+   js(w,"(selectTab('workspaces'),document.querySelector('.settings-content').scrollTop=500,$('settings-dialog').close(),openSettings(),true)");pump()
+   assert js(w,"document.querySelector('.settings-content').scrollTop")==0
+   assert js(w,"document.querySelector('.settings-tabs').scrollTop")==0
+   assert js(w,"document.querySelector('[data-section=workspaces]').hidden")
+   js(w,"(openSettings('models'),$('api-model').value='chat-one',$('api-vision').value='vision-one',$('api-save').click(),true)");pump(.5)
    w.connections.cache_models(pid,['chat-one','chat-two','vision-one']);w.publish();pump()
    assert js(w,"$('api-models').options.length")==3
    js(w,"($('settings-dialog').close(), $('model-menu').click(), $('quick-model').value='chat-two', $('quick-apply').click(),true)");pump()

@@ -60,6 +60,37 @@ def main():
                 time.sleep(.02)
             assert answer == [True], 'Offline frontend assets did not initialize'
             result['checks'].append('Qt WebEngine, UI bridge, fresh provider settings')
+            def js(code):
+                values=[]
+                window.page.runJavaScript(code, values.append)
+                end=time.monotonic()+10
+                while not values and time.monotonic()<end:
+                    app.processEvents();time.sleep(.02)
+                assert values, 'Settings JavaScript timed out'
+                return values[0]
+            def settle():
+                end=time.monotonic()+1
+                while time.monotonic()<end:
+                    app.processEvents();time.sleep(.02)
+            # A localhost fixture avoids credential access and network requests.
+            js("openSettings('models');$('api-name').value='Offline fixture';$('api-url').value='http://localhost:11434/v1';$('api-model').value='chat-before';$('api-vision').value='screen-before';$('api-save').click();")
+            settle()
+            js("$('api-model').value='chat-after';$('api-vision').value='screen-after';$('save-settings').click();")
+            settle()
+            assert window.connections.active()['model']=='chat-after'
+            assert window.connections.active()['vision_model']=='screen-after'
+            js("$('settings-dialog').close();openSettings('models');")
+            assert js("$('api-model').value")=='chat-after'
+            assert js("$('api-vision').value")=='screen-after'
+            reopened=Store(store.path)
+            try:
+                assert Connections(reopened).active()['model']=='chat-after'
+                assert Connections(reopened).active()['vision_model']=='screen-after'
+            finally:reopened.close()
+            js("selectTab('workspaces');document.querySelector('.settings-content').scrollTop=500;$('settings-dialog').close();openSettings();")
+            assert js("document.querySelector('.settings-content').scrollTop") == 0
+            assert js("document.querySelector('[data-section=workspaces]').hidden") is True
+            result['checks'].append('model edit/save/reopen/database persistence and settings scroll reset')
             window.quit_app()
             window.face.hide()
             result['ok'] = True
