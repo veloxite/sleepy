@@ -128,7 +128,20 @@ class SideBySide:
         area=screen.availableGeometry()
         width=min(620,max(440,area.width()//3))
         widget.setGeometry(area.right()-width+1,area.top(),width,area.height())
-        if sys.platform!='win32':return
+        if sys.platform!='win32':
+            import unix_windows
+            if unix_windows.supported():
+                try:
+                    hwnd=unix_windows.active()
+                    if hwnd:
+                        original=unix_windows.bounds(hwnd)
+                        ratio=1 if sys.platform=='darwin' else screen.devicePixelRatio()
+                        rect=tuple(round(v*ratio) for v in (area.x(),area.y(),area.width()-width,area.height()))
+                        unix_windows.move(hwnd,rect)
+                        self.saved=(hwnd,original,unix_windows.bounds(hwnd))
+                except Exception:
+                    self.saved=None
+            return
         user=C.windll.user32
         user.GetForegroundWindow.restype=W.HWND
         hwnd=user.GetForegroundWindow()
@@ -152,6 +165,13 @@ class SideBySide:
             self.saved=(hwnd,original,maximized,tuple(getattr(actual,k) for k in ('left','top','right','bottom')))
 
     def restore(self):
+        if self.saved and sys.platform!='win32':
+            import unix_windows
+            hwnd,original,expected=self.saved;self.saved=None
+            try:
+                if unix_windows.bounds(hwnd)==expected:unix_windows.move(hwnd,original)
+            except Exception:pass
+            return
         if not self.saved or sys.platform!='win32':return
         hwnd,rect,maximized,expected=self.saved;self.saved=None
         user=C.windll.user32;current=W.RECT()

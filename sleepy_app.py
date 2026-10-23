@@ -370,6 +370,10 @@ class SleepyWindow(AssistantFeatures,QMainWindow):
     def dispatch(self, data):
         action = data.get('action')
         if self.feature_dispatch(data):return
+        if action == 'system_access':
+            from system_access import report
+            QMessageBox.information(self, 'Sleepy · System access', report())
+            return
         if action == 'ready':
             self.page_ready=True
             self.publish()

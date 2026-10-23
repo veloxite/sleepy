@@ -61,3 +61,33 @@ def move(handle, rect):
     else:
         subprocess.run(['wmctrl', '-ir', hex(handle), '-b', 'remove,maximized_vert,maximized_horz'], timeout=3, check=True)
         subprocess.run(['wmctrl', '-ir', hex(handle), '-e', '0,' + ','.join(str(round(v)) for v in rect)], timeout=3, check=True)
+
+
+def bounds(handle):
+    if sys.platform == 'darwin':
+        import Quartz
+        rows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionIncludingWindow, handle)
+        if not rows:raise ValueError('Window closed.')
+        r = rows[0][Quartz.kCGWindowBounds]
+        return tuple(round(r[k]) for k in ('X', 'Y', 'Width', 'Height'))
+    rows = subprocess.run(['wmctrl', '-lG'], capture_output=True, text=True, timeout=3, check=True).stdout.splitlines()
+    for row in rows:
+        parts = row.split(None, 7)
+        if len(parts) >= 6 and int(parts[0], 16) == handle:
+            return tuple(int(v) for v in parts[2:6])
+    raise ValueError('Window closed.')
+
+
+def active():
+    if sys.platform == 'darwin':
+        import AppKit
+        import Quartz
+        pid = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication().processIdentifier()
+        if pid == os.getpid():return None
+        rows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, 0)
+        return next((int(r[Quartz.kCGWindowNumber]) for r in rows if r.get(Quartz.kCGWindowOwnerPID) == pid and r.get(Quartz.kCGWindowLayer) == 0), None)
+    if not shutil.which('xprop'):return None
+    text = subprocess.run(['xprop', '-root', '_NET_ACTIVE_WINDOW'], capture_output=True, text=True, timeout=3, check=True).stdout
+    import re
+    match = re.search(r'0x[0-9a-fA-F]+', text)
+    return int(match.group(), 16) if match else None
