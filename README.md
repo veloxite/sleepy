@@ -2,6 +2,8 @@
 <h1 align="center">Sleepy</h1>
 <p align="center">A quiet desktop companion. Your screen, your models, your keys.</p>
 
+⚠️ **Warning:** This project is currently in active development / pre-release testing and is not yet intended for production use. Expect breaking changes and bugs until the official `v1.0.0` release.
+
 Sleepy is a Python desktop assistant with a floating face, a clean chat window,
 on-demand screen context, local chat history, and configurable AI connections.
 Windows and Linux downloads are available. Linux Mint was manually tested with v0.2.1; microphone input remains unverified. macOS builds are experimental. Other Linux distributions have not been manually tested.
