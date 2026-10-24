@@ -14,7 +14,7 @@ Read [PRIVACY.md](PRIVACY.md) for what stays local, what is sent to services, ho
 
 ## Download the app
 
-[Download Sleepy v0.3.0](https://github.com/veloxite/sleepy/releases/tag/v0.3.0).
+[Download Sleepy v0.2.1](https://github.com/veloxite/sleepy/releases/tag/v0.2.1).
 
 ## Windows installation
 
